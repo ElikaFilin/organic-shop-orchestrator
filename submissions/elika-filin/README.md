@@ -32,6 +32,10 @@ pnpm check                  # typecheck + lint + vitest (api · web · shared) +
 `pnpm loop -- --change <id>` (цикл до зеленого), `pnpm review -- --change <id> [--agent code-reviewer]` (read-only
 рецензент), `pnpm exec openspec …` (специфікації).
 
+| Каталог | Кошик | Адмінка |
+|---|---|---|
+| ![каталог](docs/screenshots/catalog.jpg) | ![кошик](docs/screenshots/basket.jpg) | ![адмінка](docs/screenshots/admin.jpg) |
+
 ## 2. Що всередині
 
 ```
@@ -72,8 +76,8 @@ scripts         loop.mjs · review.mjs · check-verdict.mjs · hooks-selftest.mj
 | **Контекст-інженерія** · статичний | `AGENTS.md` (≤60 рядків: рівні довіри, команди, definition of done, межі), `CLAUDE.md` → `@AGENTS.md` + compact-інструкції, `.claude/rules/{api-routes,web}.md` | [`AGENTS.md`](AGENTS.md), [`CLAUDE.md`](CLAUDE.md), [`.claude/rules/`](.claude/rules/) |
 | **Контекст-інженерія** · динамічний | hook `dynamic-context.mjs` (SessionStart / UserPromptSubmit) рахує з диска активну зміну, прогрес задач, рядок «починати з» і вердикт останнього `pnpm check`; MCP **Context7** підкладає документацію бібліотек | [`.claude/hooks/dynamic-context.mjs`](.claude/hooks/dynamic-context.mjs), приклад виводу — `pnpm hooks:selftest` (секція 5); [`docs/context7-log.md`](docs/context7-log.md) — 6 запитів і що кожен змінив; [`.mcp.json`](.mcp.json) |
 | **Контекст-інженерія** · примус (hooks) | `protect-env.mjs` (exit 2: `.env*` і `process.env` поза `apps/api/src/config.ts`), `log-action.mjs` (журнал кожного виклику), `log-filter.mjs` (сирий журнал не потрапляє у вікно), `stop-gate.mjs` (не дає агентові «закінчити» з неперевіреними правками) | [`.claude/settings.json`](.claude/settings.json), [`.claude/hooks/`](.claude/hooks/), самоперевірка — [`scripts/hooks-selftest.mjs`](scripts/hooks-selftest.mjs) (частина `pnpm check`) |
-| **Правило спрацювало** | allow-list заблокував 17 Bash-команд агента в `-p`-режимі (`for … cat`, `perl -pi`, …) — агент перейшов на Read/Edit | `pnpm agent:log` → «Proposed but not executed»; [`.agent-log/actions.jsonl`](.agent-log/actions.jsonl) |
-| **Цикли (loop engineering)** | `scripts/loop.mjs`: гейт → свіжа `claude -p` → гейт; стоп на зеленому/бюджеті/max-iter/«застряг». 7 ітерацій за 3 зміни; одна зупинилась сама: «специфікація суперечить сама собі» | [`scripts/loop.mjs`](scripts/loop.mjs); записи прогонів [`docs/loops/`](docs/loops/) (кожен: ітерації, ходи, токени, $, вивід агента); [`.agent-log/loop.jsonl`](.agent-log/loop.jsonl) |
+| **Правило спрацювало** | allow-list заблокував 22 Bash-команди агента в `-p`-режимі (`for … cat`, `perl -pi`, …) — агент перейшов на Read/Edit; 764 виконаних дій за 18 сесій | `pnpm agent:log` → «Proposed but not executed»; [`.agent-log/actions.jsonl`](.agent-log/actions.jsonl) |
+| **Цикли (loop engineering)** | `scripts/loop.mjs`: гейт → свіжа `claude -p` → гейт; стоп на зеленому/бюджеті/max-iter/«застряг». 9 ітерацій за 3 зміни (533 ходи, 226 тис. output-токенів, $28.10); одна зупинилась сама: «специфікація суперечить сама собі» | [`scripts/loop.mjs`](scripts/loop.mjs); записи прогонів [`docs/loops/`](docs/loops/) (кожен: ітерації, ходи, токени, $, вивід агента); [`.agent-log/loop.jsonl`](.agent-log/loop.jsonl) |
 | **Верифікація** | одна команда `pnpm check`; тести сценаріїв спершу червоні, потім зелені — видно за парами комітів `test(…): … red` → `feat(…): … green`; `spec:check` падає на порожньому дереві, незакритих задачах і голому `openspec` | [`package.json`](package.json) (`check`), [`scripts/spec-check.mjs`](scripts/spec-check.mjs); коміти `e869183`→`d91e931` (каталог), `b5ebfd7`→`84fe870` (кошик) |
 | **maker ≠ checker** | рецензент — окрема `claude -p` сесія з read-only інструментами (`.claude/agents/spec-reviewer.md`, `code-reviewer.md`), maker не бачить її промпт. Знайшов: 500 на нечитабельному знімку, мемоізований reject, гонку check-then-write у кошику, однакові назви лінків, float-шум у сумах… — усе стало сценаріями | [`scripts/review.mjs`](scripts/review.mjs), [`.claude/agents/`](.claude/agents/), виводи — [`docs/reviews/`](docs/reviews/); також критики на етапі propose і checker на етапі червоних тестів (транскрипти workflow) |
 | **SDD (OpenSpec 1.14)** | специфікації закомічені **до** коду (`docs(openspec): propose …` раніше за `test(…)` і `feat(…)`); дві зміни архівовано в `openspec/specs/`; **специфікацію змінено, бо реальність не збіглася** — OSIO відповідав 400 без заголовка `Application-Instance`, якого не було ні в специфікації, ні в тестах на фікстурах | [`openspec/`](openspec/), [`openspec/config.yaml`](openspec/config.yaml) (правила: точні значення у сценаріях, тести першими); коміти `bae6571` (реальність), `347e42b`/`183127e` (рев'ю, суперечність) |
@@ -102,10 +106,18 @@ smoke-прогони наживо (`pnpm dev`, curl, браузер) — єди�
 
 ```
 $ pnpm check
- Test Files  18 passed (18)
-      Tests  103 passed (103)
-spec:check ok — specs: 5 · active changes: 1 · archived: 2
+ Test Files  27 passed (27)
+      Tests  182 passed (182)
+spec:check ok — specs: 8 · active changes: 0 · archived: 3
 all hook checks passed
 ```
 
-_(оновлюється після завершення `add-admin`)_
+Три зміни архівовано: `openspec/changes/archive/2026-10-04-add-{catalog,basket,admin}`; 8 специфікацій у `openspec/specs/`.
+Smoke наживо (людина): `live [ 'karashynyard:live:10', 'osio:live:10' ] 20`; кошик — `totals { count: 3, sum: 1525 }`;
+адмінка — 131 + 62 товари, hide → `karashynyard:live:9`, snapshot ↔ live.
+
+## 7. Відоме обмеження
+
+Список видимості зберігає id конкретного джерела: масив, зібраний у режимі «наживо», у режимі «знімок» збігається
+лише з тими товарами, що є в обох (за специфікацією «id, яких немає, ігноруються»). Кандидат на наступну зміну —
+видимість на кожне джерело окремо або підказка в панелі.

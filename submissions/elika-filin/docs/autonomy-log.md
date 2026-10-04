@@ -22,6 +22,7 @@
 | 12 | `/opsx:archive add-basket` + `/opsx:propose add-admin` (51 сценарій, MODIFIED-блок у catalog-api) | 4 · Агенти | archive-агент + verify-агент; proposer + 2 критики + reviser; людина прочитала `## Purpose` basket-api / basket-web і додала до обсягу адмінки «layout polish» (темна тема нечитабельна — побачено на smoke) | коміти `docs(openspec): archive add-basket…`, `docs(openspec): propose add-admin…`; `spec:check ok — specs: 5 · active changes: 1 · archived: 2` | ті самі причини, що в рядках 4 і 9 |
 | 13 | `add-admin`: червоні тести (70 тестів на 51 сценарій) → цикл → рев'ю | 3 · Агент (цикл) | maker + checker для тестів; `pnpm loop -- --change add-admin` — 1 ітерація, 110 ходів, 178 тестів зелені, $6.38; людина — smoke адмінки з тестовим токеном через змінну середовища (не `.env` — hook) | коміт `test(admin): … red`, `docs/loops/2026-10-04T13-08-22-add-admin.md`, `docs/reviews/2026-10-04-add-admin-*.md` | детектор той самий; secret у `.env` агент не торкається — токен для smoke передано процесу напряму |
 | 14 | рев'ю `add-admin`: code-reviewer FIX FIRST (7), spec-reviewer READY | 1 · Асистент (рішення) → 3 · Агент (цикл) | людина прийняла 6 знахідок (зіпсований файл налаштувань не кладе магазин; `findProduct` по повному списку, щоб прихований товар не зникав із кошика; повідомлення панелі; N+1) і **відхилила** одну: nonce/термін у підписі admin-куки — для локального інструмента з одним адміном досить `Max-Age` + ротації токена | `docs/reviews/2026-10-04-add-admin-*.md`; коміт `docs(openspec): add-admin — code review folded in (task group 8)`; прогін циклу T13-2x | відхилення — свідоме і записане: рецензент не вирішує обсяг, людина вирішує |
+| 15 | `/opsx:archive add-admin` → `openspec/specs/{admin-auth,admin-settings,admin-web}`, MODIFIED catalog-api, ADDED catalog-web; фінальний README і чернетка опису PR | 3 · Агент + 1 · людина читає `## Purpose` | archive-агент + verify-агент; людина прочитала 5 `## Purpose`, написала README/PR-опис із картою доказів | коміт `docs(openspec): archive add-admin…`; `spec:check ok — specs: 8 · active changes: 0 · archived: 3`; `pnpm check`: 182 тести | як у рядках 9 і 12 |
 
 ## Зміни рівня
 
@@ -48,8 +49,46 @@
 regex одиниці ваги з ASCII-`\b` (не збігається з жодною з 10 назв у `data/shops/karashynyard.json`) — виправлено до того,
 як це стало кодом. Один випадок, коли агент зупинив себе сам: рядок 11 (суперечлива специфікація URL-кодування).
 
-Вивід `pnpm agent:log` по `.agent-log/actions.jsonl` — вставляється наприкінці роботи:
+Вивід `pnpm agent:log` по `.agent-log/actions.jsonl` (станом на завершення `add-admin`, 2026-10-04; усі сесії —
+це прогони `claude -p` із `scripts/loop.mjs` і `scripts/review.mjs`, hooks активні в `-p`-режимі):
 
 ```
-_вивід_
+Agent actions: 764 executed, 22 proposed but not executed, 3 failed — 18 session(s), 2026-10-04T10:18:08.527Z .. 2026-10-04T13:27:08.865Z
+┌─────────┬─────────┬──────────┬──────────┬─────────┬────────┬──────────┬───────┐
+│ (index) │ tool    │ proposed │ executed │ blocked │ failed │ time (s) │ files │
+├─────────┼─────────┼──────────┼──────────┼─────────┼────────┼──────────┼───────┤
+│ 0       │ 'Read'  │ 341      │ 341      │ 0       │ 0      │ 1.7      │ 85    │
+│ 1       │ 'Edit'  │ 207      │ 207      │ 0       │ 0      │ 0.5      │ 46    │
+│ 2       │ 'Bash'  │ 154      │ 132      │ 22      │ 3      │ 326.3    │ 0     │
+│ 3       │ 'Write' │ 41       │ 41       │ 0       │ 0      │ 0.1      │ 39    │
+│ 4       │ 'Grep'  │ 40       │ 40       │ 0       │ 0      │ 0.4      │ 0     │
+│ 5       │ 'Glob'  │ 3        │ 3        │ 0       │ 0      │ 0.4      │ 0     │
+└─────────┴─────────┴──────────┴──────────┴─────────┴────────┴──────────┴───────┘
+Proposed but not executed (blocked by a hook, a rule or you):
+  2026-10-04T11:13:39.224Z  Bash  for f in packages/shared/src/index.ts apps/api/src/config.ts apps/api/src/app.ts apps/api/src/app.test.ts apps/api/src/server.ts apps/api/src/config.test.ts apps/web/src/App.tsx apps/web/src/main.tsx 
+  2026-10-04T11:13:40.754Z  Bash  for f in apps/api/src/shops/karashynyard.test.ts apps/api/src/shops/osio.test.ts apps/api/src/lib/snapshot.test.ts; do echo "===== $f"; cat -n "$f"; done
+  2026-10-04T11:19:31.516Z  Bash  perl -0pi -e 's/^- \[ \] (2\.1|3\.1|3\.2|3\.3|4\.1|4\.2|4\.3|4\.4|5\.1|5\.2|6\.1|6\.2|6\.3|7\.1|7\.2) /- [x] $1 /gm' openspec/changes/add-catalog/tasks.md && grep -c '^- \[x\]' openspec/changes/add-ca
+  2026-10-04T11:21:17.350Z  Bash  for f in apps/api/src/lib/cache.ts apps/api/src/lib/catalog.ts apps/api/src/lib/snapshot.ts apps/api/src/routes/products.ts apps/api/src/shops/types.ts; do echo "=== $f ==="; cat -n "$f"; done
+  2026-10-04T11:21:18.536Z  Bash  for f in apps/api/src/shops/karashynyard.ts apps/api/src/shops/osio.ts; do echo "=== $f ==="; cat -n "$f"; done
+  2026-10-04T11:22:36.347Z  Bash  pnpm vitest run --reporter=verbose 2>&1 | tail -50
+  2026-10-04T11:22:52.744Z  Bash  grep -c . apps/api/fixtures/osio.json 2>/dev/null; node -e "const d=require('./data/shops/osio.json');console.log('osio snapshot products',d.products.length);const k=require('./data/shops/karashynyard
+  2026-10-04T11:29:58.097Z  Bash  sed -i '' 's/^- \[ \] 9\./- [x] 9./' openspec/changes/add-catalog/tasks.md && grep -c '^- \[x\]' openspec/changes/add-catalog/tasks.md && grep -c '^- \[ \]' openspec/changes/add-catalog/tasks.md
+  2026-10-04T11:33:06.577Z  Bash  find openspec/changes/add-catalog/specs -name '*.md' -exec sh -c 'echo "--- $1 ---"; cat "$1"' _ {} \;
+  2026-10-04T11:35:04.886Z  Bash  node -e "const d=new DOMException('x','TimeoutError'); console.log('instanceof Error:', d instanceof Error); console.log(String(d));"
+  2026-10-04T12:08:12.653Z  Bash  perl -pi -e 's/\(current \?\? EMPTY_BASKET\)\.items/current?.items ?? NO_ITEMS/; s/\(basket \?\? EMPTY_BASKET\)\.items/basket?.items ?? NO_ITEMS/' apps/api/src/lib/basket.ts && grep -n "NO_ITEMS" apps
+  2026-10-04T12:09:54.350Z  Bash  sed -i '' -e '104s/- \[ \]/- [x]/' -e '113s/- \[ \]/- [x]/' -e '116s/- \[ \]/- [x]/' -e '123s/- \[ \]/- [x]/' -e '131s/- \[ \]/- [x]/' -e '137s/- \[ \]/- [x]/' openspec/changes/add-basket/tasks.md && 
+  2026-10-04T12:12:33.587Z  Bash  pnpm vitest run --reporter=verbose apps/api/src/routes/basket apps/web/src/pages/BasketPage 2>&1 | grep -E "✓|×" | head -30
+  2026-10-04T12:14:55.963Z  Bash  for f in apps/api/src/lib/basket.ts apps/api/src/lib/store/baskets.ts apps/api/src/routes/basket.ts; do echo "=== $f ==="; cat -n "$f"; done
+  2026-10-04T12:15:13.873Z  Bash  for f in apps/web/src/basket/BasketContext.tsx apps/web/src/components/BasketLine.tsx apps/web/src/pages/BasketPage.tsx; do echo "=== $f ==="; cat -n "$f"; done
+  2026-10-04T12:16:06.875Z  Bash  head -8 apps/web/src/components/ProductCard.tsx && echo "=== ids/prices ===" && node -e "const d=require('./data/shops/osio.json');console.log(d.products.slice(0,3).map(p=>[p.sourceId,p.price]));const
+  2026-10-04T12:25:13.636Z  Bash  node -e "console.log(19.99*3, 0+19.99*3, 19.99+19.99+19.99)" && pnpm test 2>&1 | grep -E "^( ?(FAIL|✓|×|→)|.*(AssertionError|Unable to find|Test Files|Tests ))" | head -40
+  2026-10-04T13:09:22.269Z  Bash  pnpm --filter @organic/shared typecheck 2>&1 | tail -5
+  2026-10-04T13:15:16.489Z  Bash  perl -pi -e 's/^- \[ \] ([23456]\.\d)/- [x] $1/' openspec/changes/add-admin/tasks.md && grep -c "^- \[x\]" openspec/changes/add-admin/tasks.md && grep -n "^- \[ \]" openspec/changes/add-admin/tasks.md
+  2026-10-04T13:16:51.808Z  Bash  node scripts/check-verdict.mjs 2>&1 | tail -3 ; echo "---exit:$?"
+  2026-10-04T13:16:55.254Z  Bash  node scripts/check-verdict.mjs > /tmp/verdict.txt 2>&1; echo "exit=$?"; grep -niE "green|red|verdict" /tmp/verdict.txt | tail -5
+  2026-10-04T13:22:35.177Z  Bash  cd /Users/elikafilin/Documents/home_projects/organic-shop-orchestrator/submissions/elika-filin && grep -n "findProducts\|console.error\|corrupt\|Corrupt" openspec/changes/add-admin/design.md openspec/
+Failed:
+  2026-10-04T11:16:53.077Z  Bash  exit=1  cat tsconfig.base.json tsconfig.json eslint.config.mjs apps/api/tsconfig.json apps/web/tsconfig.json packages/shared/tsconfig.json vitest.config.ts 2>/dev/null
+  2026-10-04T11:20:14.429Z  Bash  exit=1  ls .agent-log && cat .agent-log/check-verdict.json 2>/dev/null
+  2026-10-04T13:19:47.911Z  Bash  exit=1  sed -n '1,40p' apps/web/src/theme.test.ts; echo ===; sed -n '100,135p' apps/web/src/App.test.tsx; echo ===; cat apps/web/index.html; echo ===; cat apps/web/src/index.css; echo ===; cat apps/web/src/ro
 ```
