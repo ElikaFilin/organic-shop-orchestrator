@@ -58,12 +58,21 @@ an element with `role="status"` and a link "До каталогу" to `/`, and n
 Changing the "Кількість" input of a line to an integer 1..99 SHALL call `updateBasketItem(productId, quantity)`
 and re-render the page and the header from the basket it returns.
 
+A line's identity on the page SHALL be its `productId` (not its quantity), so a server-confirmed update re-renders the
+row in place and the focused input keeps focus.
+
 #### Scenario: Changing the quantity updates the line
 - **WHEN** route `/basket` is rendered with the two-line basket, `updateBasketItem` resolves with the same
   basket except the karashynyard line has `quantity: 3` and `totals: { count: 4, sum: 2190 }`, and the user
   changes the first "Кількість" input to `3`
 - **THEN** `updateBasketItem` was called once with `("karashynyard:1498486363994", 3)`, the first item shows
   "1995 ₴", the text "Разом: 2190 ₴" is shown and the header link reads "Кошик (4)"
+
+#### Scenario: Quantity input keeps focus across an update
+- **WHEN** `getBasket()` resolves with one line `karashynyard:1498486363994` × 1, the "Кількість" input is focused and
+  changed to `2`, and `updateBasketItem` resolves with the same basket at `quantity: 2`
+- **THEN** after the update the spinbutton named "Кількість" shows `2`, is the same DOM element as before, and is still
+  `document.activeElement`
 
 ### Requirement: Remove a line on the page
 Clicking a line's "Видалити" button SHALL call `removeBasketItem(productId)` and re-render the page and the
@@ -80,12 +89,21 @@ header from the basket it returns.
 ### Requirement: Clear the basket on the page
 Clicking "Очистити кошик" SHALL call `clearBasket()` and render the empty state from the basket it returns.
 
+A rejected mutation (`updateBasketItem`, `removeBasketItem`, `clearBasket`) SHALL show "Не вдалося оновити кошик" in
+an element with `role="status"` and keep the last known basket on screen.
+
 #### Scenario: Clearing the basket
 - **WHEN** route `/basket` is rendered with the two-line basket, `clearBasket` resolves with
   `{ id: "0f3c9d6e-7a1b-4c2d-9e8f-123456789abc", items: [], totals: { count: 0, sum: 0 } }` and the user
   clicks "Очистити кошик"
 - **THEN** `clearBasket` was called once, an element with `role="status"` shows "Кошик порожній", a link
   named "До каталогу" is shown, no list is rendered and the header link reads "Кошик (0)"
+
+#### Scenario: Removing a line fails
+- **WHEN** `getBasket()` resolves with the two lines of "Two lines with totals", the first line's "Видалити" is clicked
+  and `removeBasketItem` rejects with `Error("DELETE /api/basket/items/karashynyard:1498486363994 failed: 500")`
+- **THEN** an element with `role="status"` shows "Не вдалося оновити кошик", the list still has 2 items and
+  "Разом: 1525 ₴" is still shown
 
 ### Requirement: Unavailable product line
 A line whose `product` is `null` SHALL render the text "Товар недоступний" instead of the image, name, unit,
@@ -108,6 +126,8 @@ it adds nothing to the total.
 `credentials: "same-origin"`, validates a 2xx JSON body with the shared basket response schema and returns
 it, and rejects a non-2xx answer with `Error("<METHOD> <path> failed: <status>")`. Components never call
 `fetch`.
+
+The `productId` in a path SHALL be `encodeURIComponent`-encoded.
 
 #### Scenario: getBasket requests the basket
 - **WHEN** global `fetch` answers with status 200 and the JSON body
@@ -133,6 +153,10 @@ it, and rejects a non-2xx answer with `Error("<METHOD> <path> failed: <status>")
 - **THEN** `fetch` was called with `"/api/basket"` and an init whose `method` is `"DELETE"` and
   `credentials` is `"same-origin"`, and each of the four calls resolved with an object deep-equal to the
   empty-basket body
+
+#### Scenario: Product id is URL-encoded in the path
+- **WHEN** `fetch` is stubbed to resolve `200` with an empty basket body and `updateBasketItem("osio:a#b", 2)` is called
+- **THEN** `fetch` was called with the path `/api/basket/items/osio%3Aa%23b`
 
 #### Scenario: Failed request rejects with method, path and status
 - **WHEN** global `fetch` answers with status 404 and the body `{ error: "Product not found" }`

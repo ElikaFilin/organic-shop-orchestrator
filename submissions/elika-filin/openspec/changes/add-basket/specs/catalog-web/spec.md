@@ -6,7 +6,9 @@
 Every product card on route `/` SHALL contain a button "Додати в кошик". Clicking it SHALL call the API
 client's `addToBasket(productId, 1)` for that card's product; after the call resolves the card SHALL show the
 text "Додано" in an element with `role="status"` and the header basket link SHALL show the returned
-`totals.count`. Before any click the cards render no `role="status"` element.
+`totals.count`. While the call is pending the button SHALL be `disabled`, so a double click adds once. If the call
+rejects, the card SHALL show "Не вдалося додати" in an element with `role="status"`. Before any click the cards render
+no `role="status"` element.
 
 #### Scenario: Add from the catalog card
 - **WHEN** `getProducts()` resolves with the "Two shops with products" response of `add-catalog` (3 products:
@@ -22,3 +24,12 @@ text "Додано" in an element with `role="status"` and the header basket lin
 - **AND** after the click `addToBasket` was called once with `("karashynyard:1498486363994", 1)`, the first
   card contains an element with `role="status"` showing "Додано", the other two cards contain no
   `role="status"` element, and the header link reads "Кошик (1)" with `href="/basket"`
+
+#### Scenario: Double click adds once
+- **WHEN** `addToBasket` resolves only after a tick and the card's "Додати в кошик" is clicked twice in a row
+- **THEN** the button is `disabled` after the first click, `addToBasket` was called exactly once, and after the
+  promise resolves the card shows "Додано"
+
+#### Scenario: Add fails
+- **WHEN** `addToBasket` rejects with `Error("POST /api/basket/items failed: 500")` and "Додати в кошик" is clicked
+- **THEN** the card shows "Не вдалося додати" in an element with `role="status"` and the button is enabled again

@@ -101,7 +101,7 @@ the loop allow-list (`scripts/loop.mjs`): `pnpm test <path>`, `pnpm typecheck`, 
 
 ## 2. Shared contract
 
-- [ ] 2.1 `packages/shared/src/index.ts`: add `BasketIdSchema`, `ProductIdSchema`, `BasketQuantitySchema`,
+- [x] 2.1 `packages/shared/src/index.ts`: add `BasketIdSchema`, `ProductIdSchema`, `BasketQuantitySchema`,
   `AddBasketItemSchema`, `UpdateBasketItemSchema`, `BasketLineSchema`, `BasketTotalsSchema`,
   `BasketResponseSchema`, `StoredBasketLineSchema`, `StoredBasketSchema`, `BasketsFileSchema` and their
   `z.infer` types exactly as in design.md D1 (zod 4, no I/O, no framework import). Verify: `pnpm typecheck`
@@ -110,17 +110,17 @@ the loop allow-list (`scripts/loop.mjs`): `pnpm test <path>`, `pnpm typecheck`, 
 
 ## 3. API — config and store
 
-- [ ] 3.1 `apps/api/src/config.ts`: `dataDir` = `env.DATA_DIR ?? resolve(dirname(fileURLToPath(import.meta.url)), "../../../.data")`
+- [x] 3.1 `apps/api/src/config.ts`: `dataDir` = `env.DATA_DIR ?? resolve(dirname(fileURLToPath(import.meta.url)), "../../../.data")`
   (design.md D5); still the only file that reads `process.env`. Verify: `pnpm test apps/api/src/config` passes
   both config tests and `pnpm hooks:selftest` stays green.
-- [ ] 3.2 `apps/api/src/lib/store/baskets.ts`: `createBasketStore(filePath)` with `get` and `update`
+- [x] 3.2 `apps/api/src/lib/store/baskets.ts`: `createBasketStore(filePath)` with `get` and `update`
   (design.md D2): read + `BasketsFileSchema` validation, `ENOENT` → no baskets, one promise-chain queue,
   `mkdir` + `<file>.<uuid>.tmp` + `rename`, temp file unlinked on a failed write. No Hono import. Verify: the
   four tests of 1.2 pass (`pnpm test apps/api/src/lib/store`).
 
 ## 4. API — basket service
 
-- [ ] 4.1 `apps/api/src/lib/basket.ts`: `createBasketService({ store, catalog, now })` with `get`, `addItem`
+- [x] 4.1 `apps/api/src/lib/basket.ts`: `createBasketService({ store, catalog, now })` with `get`, `addItem`
   (findProduct first, merge `Math.min(99, existing + quantity)`, `addedAt` kept), `updateItem`, `removeItem`,
   `clear`, the `BasketResult` union and `toResponse` with the totals reduce over lines that have a product
   (design.md D3). No Hono import, no file I/O outside the store. Verify: `pnpm typecheck` exits 0 (behaviour
@@ -128,13 +128,13 @@ the loop allow-list (`scripts/loop.mjs`): `pnpm test <path>`, `pnpm typecheck`, 
 
 ## 5. API — route and wiring
 
-- [ ] 5.1 `apps/api/src/routes/basket.ts`: `basketRoutes(service)` — cookie middleware (`getCookie` →
+- [x] 5.1 `apps/api/src/routes/basket.ts`: `basketRoutes(service)` — cookie middleware (`getCookie` →
   `BasketIdSchema.safeParse` → `randomUUID()` + `setCookie(c, "basket_id", id, { httpOnly: true, path: "/", sameSite: "Lax", maxAge: 2592000 })`
   only when the cookie is missing or malformed), five thin handlers with `{ error: "Invalid request body" }`,
   `{ error: "Invalid product id" }` (400) and the 404 mapping of `BasketResult` (design.md D4).
   `apps/api/src/app.ts`: `createApp({ catalog, basketStore, now = Date.now })`, mount at `/api/basket`.
   Verify: the sixteen tests of 1.4 pass (`pnpm test apps/api/src/routes/basket`).
-- [ ] 5.2 Adapt the three add-catalog tests that call `createApp({ catalog })` to the new signature —
+- [x] 5.2 Adapt the three add-catalog tests that call `createApp({ catalog })` to the new signature —
   `apps/api/src/app.test.ts`, `apps/api/src/routes/products.test.ts` and `apps/api/src/lib/catalog.test.ts`
   (its "Runtime switch to snapshot" test) — each passes
   `basketStore: createBasketStore(join(mkdtempSync(join(tmpdir(), "baskets-")), "baskets.json"))` (setup only:
@@ -147,23 +147,23 @@ the loop allow-list (`scripts/loop.mjs`): `pnpm test <path>`, `pnpm typecheck`, 
 
 ## 6. Web — client, state, components, page, router
 
-- [ ] 6.1 `apps/web/src/api/client.ts`: private `request(method, path, body?)` and the five exports
+- [x] 6.1 `apps/web/src/api/client.ts`: private `request(method, path, body?)` and the five exports
   `getBasket`, `addToBasket`, `updateBasketItem`, `removeBasketItem`, `clearBasket` (design.md D10);
   `getProducts` untouched. Verify: the three tests of 1.5 and add-catalog's two client tests pass
   (`pnpm test apps/web/src/api`).
-- [ ] 6.2 `apps/web/src/basket/BasketContext.tsx` (`BasketProvider`, `useBasket`, tri-state, mount-only
+- [x] 6.2 `apps/web/src/basket/BasketContext.tsx` (`BasketProvider`, `useBasket`, tri-state, mount-only
   `getBasket()`, `setBasket`, derived `count` — design.md D6) and `apps/web/src/App.tsx` (provider around
   `<header>` with the h1 and `<nav><Link to="/basket">Кошик ({count})</Link></nav>`, then `<Outlet />`).
   Update `apps/web/src/pages/CatalogPage.test.tsx` setup only: `vi.mocked(getBasket).mockResolvedValue(<empty basket>)`
   in a `beforeEach` (the layout now calls it on mount; add-catalog's assertions unchanged). Verify: both
   `App.test.tsx` tests and the five `CatalogPage.test.tsx` tests pass
   (`pnpm test apps/web/src/App apps/web/src/pages/CatalogPage`).
-- [ ] 6.3 `apps/web/src/components/ProductCard.tsx`: button "Додати в кошик" →
+- [x] 6.3 `apps/web/src/components/ProductCard.tsx`: button "Додати в кошик" →
   `setBasket(await addToBasket(product.id, 1))`, then `<span role="status">Додано</span>`; a rejection →
   `<span role="status">Не вдалося додати</span>` (design.md D7); Tailwind utilities only. Verify: the 1.6
   test passes and add-catalog's "Two shops with products" still finds no `role="status"` element
   (`pnpm test apps/web/src/components/ProductCard apps/web/src/pages/CatalogPage`).
-- [ ] 6.4 `apps/web/src/components/BasketLine.tsx` (design.md D9) and `apps/web/src/pages/BasketPage.tsx`
+- [x] 6.4 `apps/web/src/components/BasketLine.tsx` (design.md D9) and `apps/web/src/pages/BasketPage.tsx`
   (design.md D8: loading / error / empty / lines states, `formatPrice` imported from `ProductCard.tsx`,
   "Разом: …", "Очистити кошик"); `apps/web/src/router.tsx` adds `{ path: "basket", Component: BasketPage }`
   under `App`. Verify: the six tests of 1.8 pass (`pnpm test apps/web/src/pages/BasketPage`) and `pnpm test`
@@ -171,14 +171,39 @@ the loop allow-list (`scripts/loop.mjs`): `pnpm test <path>`, `pnpm typecheck`, 
 
 ## 7. Integration and done
 
-- [ ] 7.1 `docs/session-notes.md`: tick the "кошик" checklist line with the automated proof — quote the
+- [x] 7.1 `docs/session-notes.md`: tick the "кошик" checklist line with the automated proof — quote the
   `pnpm test` result lines of the 1.4 tests "Request with the cookie reuses the basket" (the basket survives a
   second request with the same cookie, i.e. a reload) and "Totals add up the lines", and of the 1.8 test
   "Changing the quantity updates the line" — and end the line with the placeholder `smoke: ____`, which the
   human replaces after the smoke run below; add the session's progress entry (Зроблено / Не працює / Починати
   наступну сесію з). Verify: the line reads `[x]`, names `pnpm test` and the three test names, and ends with
   `smoke: ____`.
-- [ ] 7.2 Run `pnpm check` and quote its summary lines (Tests … passed, spec:check ok — …).
+- [x] 7.2 Run `pnpm check` and quote its summary lines (Tests … passed, spec:check ok — …).
+  `node scripts/check-verdict.mjs` → GREEN: `Test Files  16 passed (16)`, `Tests  84 passed (84)`,
+  `spec:check ok — specs: 3 · active changes: 2 · archived: 1`, `all hook checks passed`.
+
+## 8. Review findings (maker ≠ checker — docs/reviews/2026-10-04-add-basket-code-reviewer.md)
+
+All eight findings accepted and specified above: totals rounded to kopiykas (spec changed from "never rounded"),
+per-record validation in the store, atomic check-and-write for PATCH/DELETE, stable row identity on /basket,
+disabled button while adding, visible mutation failures, URL-encoded product ids, tests beside `lib/basket.ts`
+and `BasketLine.tsx`.
+
+- [ ] 8.1 Scenario tests first: `routes/basket.test.ts` "Non-integer price sums without float noise" and "Clear and
+  change the quantity race"; `lib/store/baskets.test.ts` "A corrupt record does not break other baskets";
+  `pages/BasketPage.test.tsx` "Quantity input keeps focus across an update" and "Removing a line fails";
+  `api/client.test.ts` "Product id is URL-encoded in the path"; `components/ProductCard.test.tsx` "Double click adds
+  once" and "Add fails"; `config.test.ts` `DATA_DIR: ""` throws (spec-reviewer finding). Run `pnpm test`, quote the red lines.
+- [ ] 8.2 API: `lib/basket.ts` round `totals.sum` to 2 decimals and do the existence check inside the store update;
+  `lib/store/baskets.ts` validate per record, skip and `console.error` corrupt ones; `config.ts` reject an empty
+  `DATA_DIR`. Verify: the 8.1 API tests pass.
+- [ ] 8.3 Web: `BasketPage.tsx` key = `productId`; `BasketLine.tsx`/`BasketPage.tsx` show "Не вдалося оновити кошик"
+  (`role="status"`) when a mutation rejects; `ProductCard.tsx` disable the button while pending and show
+  "Не вдалося додати" on failure; `api/client.ts` `encodeURIComponent(productId)`. Verify: the 8.1 web tests pass.
+- [ ] 8.4 Add `apps/api/src/lib/basket.test.ts` (service: add/merge/cap, totals rounding, not-found results) and
+  `apps/web/src/components/BasketLine.test.tsx` (renders name/unit/prices, quantity change calls back, remove calls
+  back) beside the code — AGENTS.md / `.claude/rules/web.md`. Verify: `pnpm test` green.
+- [ ] 8.5 Run `pnpm check` and quote its summary lines (Tests … passed, spec:check ok — …).
 
 ### Human smoke run (outside the loop, after 7.2)
 

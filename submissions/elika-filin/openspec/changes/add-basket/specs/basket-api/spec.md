@@ -43,7 +43,8 @@ with a value that is not a UUID, SHALL get a new id from `crypto.randomUUID()` a
 order the lines were added, each `{ productId, quantity, product }` where `product` is the catalog's current
 `Product` for that id (`catalog.findProduct`) or `null` when the catalog no longer serves it; `totals.count`
 is the sum of `quantity` over lines with a product, `totals.sum` the sum of `price × quantity` over the same
-lines (UAH number, never rounded). Lines with `product: null` add 0 to both.
+lines (UAH number, rounded to 2 decimal places — kopiykas — so a non-integer price never leaks binary float noise
+into the response; integer prices stay integers). Lines with `product: null` add 0 to both.
 
 #### Scenario: Totals add up the lines
 - **WHEN** with `Cookie: basket_id=0f3c9d6e-7a1b-4c2d-9e8f-123456789abc`, `POST /api/basket/items`
@@ -62,6 +63,11 @@ lines (UAH number, never rounded). Lines with `product: null` add 0 to both.
   `{ productId: "karashynyard:1498486363994", quantity: 2, product: <full Product, price 665> }`, `items[1]`
   is `{ productId: "osio:000000000000000000000000", quantity: 1, product: null }` and `totals` is
   `{ count: 2, sum: 1330 }`
+
+#### Scenario: Non-integer price sums without float noise
+- **WHEN** the fake catalog also serves a product `test:fraction` with `price: 19.99`, a basket holds that line with
+  `quantity: 3`, and `GET /api/basket` is requested
+- **THEN** `totals` equals `{ count: 3, sum: 59.97 }` (not `59.97000000000001`)
 
 ### Requirement: Add a product to the basket
 `POST /api/basket/items` with body `{ productId, quantity? }` (`quantity` an integer 1..99, default 1) SHALL
@@ -104,6 +110,9 @@ product it SHALL answer 404 `{ error: "Product not found" }` and leave the baske
 and answer 200 with the basket; when the basket has no line for `productId` it SHALL answer 404
 `{ error: "Basket item not found" }`.
 
+The existence check and the write SHALL happen inside one store update (one queued operation), so a concurrent
+clear or remove cannot slip between them.
+
 #### Scenario: Change the quantity
 - **WHEN** after `POST /api/basket/items` `{ "productId": "karashynyard:1498486363994", "quantity": 2 }`,
   `PATCH /api/basket/items/karashynyard:1498486363994` with body `{ "quantity": 5 }` is requested with the
@@ -116,6 +125,13 @@ and answer 200 with the basket; when the basket has no line for `productId` it S
 - **WHEN** `PATCH /api/basket/items/osio:6abcf192b7db2532803d266d` with body `{ "quantity": 1 }` is
   requested on an empty basket
 - **THEN** the status is 404 and the body is `{ error: "Basket item not found" }`
+
+#### Scenario: Clear and change the quantity race
+- **WHEN** a basket holds the line `karashynyard:1498486363994` with `quantity: 2`, and `DELETE /api/basket` and
+  `PATCH /api/basket/items/karashynyard:1498486363994` with body `{ quantity: 3 }` are sent concurrently with
+  `Promise.all` (the DELETE issued first) using the same cookie
+- **THEN** the DELETE answers 200 with `items: []`, the PATCH answers 404 `{ error: "Basket item not found" }`, and a
+  following `GET /api/basket` has `items: []` and `totals: { count: 0, sum: 0 }`
 
 ### Requirement: Remove a line
 `DELETE /api/basket/items/:productId` SHALL remove that line and answer 200 with the basket; when the basket
@@ -184,6 +200,9 @@ file SHALL read as no baskets and SHALL NOT be created by a read. Every write SH
 atomically — written to a temporary file in the same directory, then renamed over `baskets.json` — and keep
 the other baskets.
 
+A record that fails validation SHALL be skipped (and reported on stderr) instead of failing the whole file, so one
+corrupt basket never takes down the others.
+
 #### Scenario: Missing file means no baskets
 - **WHEN** a store is created on `<tmp>/baskets.json`, `<tmp>` being a fresh empty temp directory, and
   `get("0f3c9d6e-7a1b-4c2d-9e8f-123456789abc")` is awaited
@@ -214,6 +233,12 @@ the other baskets.
   `0f3c9d6e-7a1b-4c2d-9e8f-123456789abc` unchanged and `6d2a1f0c-3b4e-4f5a-8c7d-0a1b2c3d4e5f` with
   `updatedAt: "2026-10-04T10:05:00.000Z"` and the single osio line
 
+#### Scenario: A corrupt record does not break other baskets
+- **WHEN** `baskets.json` in a temp dir holds two baskets — `11111111-1111-4111-8111-111111111111` with one valid line
+  `{ productId: "osio:6abcf192b7db2532803d266d", quantity: 1, addedAt: "2026-10-04T10:00:00.000Z" }` and
+  `22222222-2222-4222-8222-222222222222` whose only line has `productId: "bad id"` — and the store reads both ids
+- **THEN** the first id yields its one line and the second id yields an empty basket (no throw)
+
 ### Requirement: Data directory configuration
 `AppConfig` SHALL carry `dataDir`: by default the repository's `.data` directory (resolved from
 `apps/api/src/config.ts`, not from the working directory), overridable by `DATA_DIR`; `config.ts` stays the
@@ -225,3 +250,5 @@ only file that reads `process.env`. The server SHALL build the basket store on `
   `resolve(<directory of apps/api/src/config.ts>, "../../../.data")` — the repository's `.data`
 - **WHEN** `loadConfig({ DATA_DIR: "/tmp/organic-baskets" })` is called
 - **THEN** `dataDir` is `"/tmp/organic-baskets"`
+- **WHEN** `loadConfig({ DATA_DIR: "" })` is called
+- **THEN** it throws an `Error` with message `DATA_DIR must be a non-empty path` (like `SNAPSHOT_DIR`)
