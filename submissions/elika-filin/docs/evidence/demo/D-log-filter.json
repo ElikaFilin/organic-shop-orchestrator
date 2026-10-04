@@ -1,0 +1,7 @@
+{
+  "session_id": "ecd3fd9a-5402-45cd-97f7-981ad6103d69",
+  "num_turns": 2,
+  "total_cost_usd": 0.17042000000000002,
+  "permission_denials": [],
+  "result": "The `cat` never ran. What came back is the `pnpm agent:log` summary, not raw JSONL.\n\n**First line returned:**\n```\nAgent actions: 769 executed, 24 proposed but not executed, 3 failed — 21 session(s), 2026-10-04T10:18:08.527Z .. 2026-10-04T14:24:38.725Z\n```\n\n**Hook message:** none — no explicit hook text, error, or permission notice appeared. The interception was silent. The only evidence it happened is indirect, and it's conclusive:\n\n1. The output is a formatted table, not the file's contents.\n2. My own command is the last entry in the log's own \"Proposed but not executed (blocked by a hook, a rule or you)\" list — `2026-10-04T14:24:38.725Z  Bash  cat .agent-log/actions.jsonl`. The hook logged the block and then handed me the summary in its place.\n\nThat matches the project invariant: the log is read with `pnpm agent:log`, never by dumping the JSONL into the conversation. The hook enforces it deterministically rather than trusting the rule to survive in context — so the context bomb was prevented regardless of what I did.\n\nWorth noting from the summary: `Bash` shows 23 blocked out of 156 proposed, so this hook (and its siblings) fire regularly — mostly on multi-file `cat` loops and in-place `sed`/`perl` edits."
+}

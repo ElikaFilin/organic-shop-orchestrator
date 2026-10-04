@@ -17,7 +17,8 @@
     "agent:log": "node scripts/agent-log-summary.mjs",
     "loop": "node scripts/loop.mjs",
     "review": "node scripts/review.mjs",
-    "shops:refresh": "pnpm --filter @organic/api run shops:refresh"
+    "shops:refresh": "pnpm --filter @organic/api run shops:refresh",
+    "transcripts": "node scripts/transcript-grep.mjs"
   },
   "packageManager": "pnpm@10.28.0",
   "engines": {

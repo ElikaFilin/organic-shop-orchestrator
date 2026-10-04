@@ -1,0 +1,7 @@
+{
+  "session_id": "e9adb367-b16d-4fcc-9232-76cd460c2928",
+  "num_turns": 6,
+  "total_cost_usd": 0.2121325,
+  "permission_denials": [],
+  "result": "Green: `Tests  182 passed (182)` · `spec:check ok — specs: 8 · active changes: 0 · archived: 3` (exit 0).\n\nHook message, verbatim:\n\n> [node ${CLAUDE_PROJECT_DIR}/.claude/hooks/stop-gate.mjs]: Blocked by hook (stop-gate): source files were edited after the last green pnpm check. Run `node scripts/check-verdict.mjs` and quote its summary lines before finishing.\n\nDONE"
+}

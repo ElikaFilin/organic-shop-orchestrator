@@ -28,6 +28,8 @@ pnpm-workspace: `apps/api` (Hono) + `apps/web` (Vite + React) + `packages/shared
 - [ ] **Project Factory** — не використовував(ла).
 - [x] Інше: естафета між сесіями — [`docs/session-notes.md`](submissions/elika-filin/docs/session-notes.md) (чекліст із доказом у тому ж рядку); intent до специфікації — [`docs/intent.md`](submissions/elika-filin/docs/intent.md).
 
+**Доказ, що практики справді використовувались, а не лише існують:** [`submissions/elika-filin/docs/evidence/`](submissions/elika-filin/docs/evidence/) — дослівні датовані витяги з транскриптів 22 сесій `claude -p`, журналів workflow-агентів і `.agent-log`, перевірені окремим агентом; `hooks-demo.md` — чотири навмисні сесії, де hooks зупинили агента.
+
 ## Інструменти та MCP
 
 Claude Code (desktop, Fable 5.1): workflows з паралельними сабагентами (дослідження, propose + 2 критики, червоні
