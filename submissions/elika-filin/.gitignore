@@ -9,3 +9,4 @@ dist/
 .agent-log/summary.txt
 .claude/settings.local.json
 CLAUDE.local.md
+.agent-log/last-check.json
