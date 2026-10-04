@@ -1,0 +1,131 @@
+{
+  "shop": {
+    "key": "karashynyard",
+    "name": "Карашин Яр",
+    "url": "https://karashynyard.com.ua/#rec638772397"
+  },
+  "fetchedAt": "2026-10-04",
+  "verifiedBy": "independent checker agent: curl of every image and product URL, prices spot-checked against the live source",
+  "products": [
+    {
+      "sourceId": "1498486363994",
+      "name": "Філе індички, 1 кг",
+      "price": 665,
+      "currency": "UAH",
+      "imageUrl": "https://static.tildacdn.net/tild3635-3935-4665-b364-633939613631/___13.jpg",
+      "productUrl": "https://karashynyard.com.ua/#rec638772397",
+      "description": "Ніжне філе без кістки для котлет, запікання, тушкування та дитячих страв.",
+      "category": "Індичка з вільного вигулу",
+      "unit": "1 кг",
+      "inStock": true
+    },
+    {
+      "sourceId": "1628604400123",
+      "name": "Ковбаси з фермерської індички, 900 г",
+      "price": 685,
+      "currency": "UAH",
+      "imageUrl": "https://static.tildacdn.net/tild3062-3633-4531-a432-363762663061/___30.jpg",
+      "productUrl": "https://karashynyard.com.ua/#rec638772397",
+      "description": "Соковиті ковбаски з фермерської індички для пательні, грилю або запікання.",
+      "category": "Індичка з вільного вигулу",
+      "unit": "900 г",
+      "inStock": true
+    },
+    {
+      "sourceId": "1781040705497",
+      "name": "Фермерське курча 800 г - 1,1 кг",
+      "price": 545,
+      "currency": "UAH",
+      "imageUrl": "https://static.tildacdn.net/tild6135-3439-4161-a364-373661326331/___-_2026-07-19T1811.jpg",
+      "productUrl": "https://karashynyard.com.ua/#rec638782031",
+      "description": "Молоде фермерське курча з вільного вигулу для запікання цілком, бульйону або грилю. Ціна за все курча.",
+      "category": "Курка та інша птиця з вільного вигулу (качка, перепела, цесарка)",
+      "unit": "800 г - 1,1 кг",
+      "inStock": true
+    },
+    {
+      "sourceId": "1652947963962",
+      "name": "Фермерські перепела, 1 кг",
+      "price": 610,
+      "currency": "UAH",
+      "imageUrl": "https://static.tildacdn.net/tild3533-3235-4636-b733-646337376435/___44.jpg",
+      "productUrl": "https://karashynyard.com.ua/#rec638782031",
+      "description": "Ніжні фермерські перепели з вільного вигулу. Маленькі тушки для запікання, бульйонів і дитячих страв.",
+      "category": "Курка та інша птиця з вільного вигулу (качка, перепела, цесарка)",
+      "unit": "1 кг",
+      "inStock": true
+    },
+    {
+      "sourceId": "1651059869009",
+      "name": "Каре молочної телятини, 1 кг",
+      "price": 1410,
+      "currency": "UAH",
+      "imageUrl": "https://static.tildacdn.net/tild3839-3761-4639-a262-303261303632/___84.jpg",
+      "productUrl": "https://karashynyard.com.ua/#rec638780644",
+      "description": "Ніжне рожеве каре молочної телятини на кістці для стейків, гриля та запікання.",
+      "category": "Молочна телятина та фермерська яловичина",
+      "unit": "1 кг",
+      "inStock": true
+    },
+    {
+      "sourceId": "1766158125517",
+      "name": "Тушка молодого фермерського кролика, 1 -1,5 кг",
+      "price": 625,
+      "currency": "UAH",
+      "imageUrl": "https://static.tildacdn.net/tild6238-6234-4239-b264-373538323437/___92.jpg",
+      "productUrl": "https://karashynyard.com.ua/#rec638781700",
+      "description": "Ніжна тушка молодого кролика для запікання, тушкування, бульйону та домашніх страв. Ціна за 1 кг.",
+      "category": "Молодий фермерський кролик з власної відгодівлі",
+      "unit": "1 -1,5 кг",
+      "inStock": true
+    },
+    {
+      "sourceId": "1695632413443",
+      "name": "Пельмені з фермерської індички, 700 г",
+      "price": 630,
+      "currency": "UAH",
+      "imageUrl": "https://static.tildacdn.net/tild3436-6539-4634-b465-396135346164/___99.jpg",
+      "productUrl": "https://karashynyard.com.ua/#rec638780993",
+      "description": "Домашні пельмені з фермерською індичкою. Зручний запас для швидкого обіду або вечері.",
+      "category": "Домашні заготовки з мʼяса власної ферми",
+      "unit": "700 г",
+      "inStock": true
+    },
+    {
+      "sourceId": "1648566839990",
+      "name": "Масло ГХІ, 330 г",
+      "price": 590,
+      "currency": "UAH",
+      "imageUrl": "https://static.tildacdn.net/tild3066-3032-4331-a461-396638633366/___-_2026-06-12T1903.jpg",
+      "productUrl": "https://karashynyard.com.ua/#rec638793505",
+      "description": "Ароматне топлене масло для смаження, каш, овочів, випічки та щоденного приготування.",
+      "category": "Домашні молочні продукти та фермерські сири",
+      "unit": "330 г",
+      "inStock": true
+    },
+    {
+      "sourceId": "1685968207499",
+      "name": "Курячі яйця від фермерських курей, 10 шт",
+      "price": 180,
+      "currency": "UAH",
+      "imageUrl": "https://static.tildacdn.net/tild6666-3231-4139-b637-633235343332/___-_2026-06-12T1916.jpg",
+      "productUrl": "https://karashynyard.com.ua/#rec638793174",
+      "description": "Свіжі курячі яйця з нашої ферми для сніданків, омлетів, сирників, випічки та щоденних домашніх страв.",
+      "category": "Фермерські яйця з насиченим жовтком",
+      "unit": "10 шт",
+      "inStock": true
+    },
+    {
+      "sourceId": "1743423686258",
+      "name": "Гречаний чай з жасмином 100 г (99 чашок)",
+      "price": 480,
+      "currency": "UAH",
+      "imageUrl": "https://static.tildacdn.net/tild3162-6539-4631-a163-616164333338/___-_2026-06-12T1958.jpg",
+      "productUrl": "https://karashynyard.com.ua/#rec877944979",
+      "description": "М’який гречаний чай із ніжним квітковим ароматом жасмину. Добре смакує теплим або охолодженим.",
+      "category": "Солодощі, какао та чай до фермерського кошика",
+      "unit": "100 г",
+      "inStock": true
+    }
+  ]
+}
