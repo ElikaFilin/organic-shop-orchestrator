@@ -127,7 +127,8 @@ it adds nothing to the total.
 it, and rejects a non-2xx answer with `Error("<METHOD> <path> failed: <status>")`. Components never call
 `fetch`.
 
-The `productId` in a path SHALL be `encodeURIComponent`-encoded.
+The `productId` in a path SHALL be percent-encoded with `encodeURIComponent` except the `:` between shop key and
+source id, which stays literal (RFC 3986 allows it in a path segment and the sibling scenarios pin the literal form).
 
 #### Scenario: getBasket requests the basket
 - **WHEN** global `fetch` answers with status 200 and the JSON body
@@ -156,7 +157,7 @@ The `productId` in a path SHALL be `encodeURIComponent`-encoded.
 
 #### Scenario: Product id is URL-encoded in the path
 - **WHEN** `fetch` is stubbed to resolve `200` with an empty basket body and `updateBasketItem("osio:a#b", 2)` is called
-- **THEN** `fetch` was called with the path `/api/basket/items/osio%3Aa%23b`
+- **THEN** `fetch` was called with the path `/api/basket/items/osio:a%23b`
 
 #### Scenario: Failed request rejects with method, path and status
 - **WHEN** global `fetch` answers with status 404 and the body `{ error: "Product not found" }`

@@ -65,9 +65,9 @@ into the response; integer prices stay integers). Lines with `product: null` add
   `{ count: 2, sum: 1330 }`
 
 #### Scenario: Non-integer price sums without float noise
-- **WHEN** the fake catalog also serves a product `test:fraction` with `price: 19.99`, a basket holds that line with
+- **WHEN** the fake catalog also serves a product `test:fraction` with `price: 1.1`, a basket holds that line with
   `quantity: 3`, and `GET /api/basket` is requested
-- **THEN** `totals` equals `{ count: 3, sum: 59.97 }` (not `59.97000000000001`)
+- **THEN** `totals` equals `{ count: 3, sum: 3.3 }` (raw `1.1 * 3` is `3.3000000000000003`)
 
 ### Requirement: Add a product to the basket
 `POST /api/basket/items` with body `{ productId, quantity? }` (`quantity` an integer 1..99, default 1) SHALL
