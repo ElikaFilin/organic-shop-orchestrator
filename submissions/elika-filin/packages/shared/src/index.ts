@@ -56,6 +56,64 @@ export const CatalogResponseSchema = z.object({
 });
 export type CatalogResponse = z.infer<typeof CatalogResponseSchema>;
 
+/** The anonymous basket id — the value of the httpOnly `basket_id` cookie. */
+export const BasketIdSchema = z.uuid();
+export type BasketId = z.infer<typeof BasketIdSchema>;
+
+/** Mirrors Product.id = "<shopKey>:<sourceId>", so a malformed id is 400 and an unknown one 404. */
+export const ProductIdSchema = z.string().regex(new RegExp(`^(${SHOP_KEYS.join("|")}):[^\\s/]+$`));
+export type ProductId = z.infer<typeof ProductIdSchema>;
+
+export const BasketQuantitySchema = z.number().int().min(1).max(99);
+
+export const AddBasketItemSchema = z.object({
+  productId: ProductIdSchema,
+  quantity: BasketQuantitySchema.default(1),
+});
+export type AddBasketItem = z.infer<typeof AddBasketItemSchema>;
+
+export const UpdateBasketItemSchema = z.object({ quantity: BasketQuantitySchema });
+export type UpdateBasketItem = z.infer<typeof UpdateBasketItemSchema>;
+
+/** `product` is null when the catalog no longer serves the line's product. */
+export const BasketLineSchema = z.object({
+  productId: ProductIdSchema,
+  quantity: BasketQuantitySchema,
+  product: ProductSchema.nullable(),
+});
+export type BasketLine = z.infer<typeof BasketLineSchema>;
+
+/** Totals count only lines with a product: count = sum of quantities, sum = price × quantity in UAH. */
+export const BasketTotalsSchema = z.object({
+  count: z.number().int().min(0),
+  sum: z.number().min(0),
+});
+export type BasketTotals = z.infer<typeof BasketTotalsSchema>;
+
+export const BasketResponseSchema = z.object({
+  id: BasketIdSchema,
+  items: z.array(BasketLineSchema),
+  totals: BasketTotalsSchema,
+});
+export type BasketResponse = z.infer<typeof BasketResponseSchema>;
+
+export const StoredBasketLineSchema = z.object({
+  productId: ProductIdSchema,
+  quantity: BasketQuantitySchema,
+  addedAt: z.iso.datetime(),
+});
+export type StoredBasketLine = z.infer<typeof StoredBasketLineSchema>;
+
+export const StoredBasketSchema = z.object({
+  updatedAt: z.iso.datetime(),
+  items: z.array(StoredBasketLineSchema),
+});
+export type StoredBasket = z.infer<typeof StoredBasketSchema>;
+
+/** The shape of <dataDir>/baskets.json: every basket by id. */
+export const BasketsFileSchema = z.object({ baskets: z.record(z.string(), StoredBasketSchema) });
+export type BasketsFile = z.infer<typeof BasketsFileSchema>;
+
 /** The shape of a committed snapshot file in data/shops/<key>.json. */
 export const SnapshotFileSchema = z.object({
   shop: z.object({ key: ShopKeySchema, name: z.string(), url: z.string() }),

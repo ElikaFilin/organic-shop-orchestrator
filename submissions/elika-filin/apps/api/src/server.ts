@@ -1,3 +1,4 @@
+import { join } from "node:path";
 import { serve } from "@hono/node-server";
 import type { Product } from "@organic/shared";
 import { createApp } from "./app";
@@ -5,6 +6,7 @@ import { loadConfig } from "./config";
 import { createTtlCache } from "./lib/cache";
 import { createCatalogService } from "./lib/catalog";
 import { createSnapshotSource } from "./lib/snapshot";
+import { createBasketStore } from "./lib/store/baskets";
 import { createKarashynyardAdapter } from "./shops/karashynyard";
 import { createOsioAdapter } from "./shops/osio";
 
@@ -23,6 +25,8 @@ const catalog = createCatalogService({
   now: Date.now,
 });
 
-serve({ fetch: createApp({ catalog }).fetch, port: config.port }, (info) => {
+const basketStore = createBasketStore(join(config.dataDir, "baskets.json"));
+
+serve({ fetch: createApp({ catalog, basketStore }).fetch, port: config.port }, (info) => {
   console.log(`organic-catalog-api listening on http://localhost:${info.port}`);
 });

@@ -130,12 +130,33 @@ test("Add from the catalog card", async () => {
   expect(await screen.findByRole("link", { name: "Кошик (1)" })).toHaveAttribute("href", "/basket");
 });
 
-// Design D7 assumption, no spec scenario: a rejected addToBasket is reported on that card only and the
-// header keeps the last known count.
-test("Failed add shows the failure text on the card", async () => {
+test("Double click adds once", async () => {
   vi.mocked(getProducts).mockResolvedValue(twoShopsResponse);
   vi.mocked(getBasket).mockResolvedValue(emptyBasket);
-  vi.mocked(addToBasket).mockRejectedValue(new Error("POST /api/basket/items failed: 404"));
+  let deliverBasket: (basket: BasketResponse) => void = () => {};
+  vi.mocked(addToBasket).mockReturnValue(
+    new Promise<BasketResponse>((resolve) => {
+      deliverBasket = resolve;
+    }),
+  );
+  render(<RouterProvider router={createMemoryRouter(routes, { initialEntries: ["/"] })} />);
+  const [firstCard] = await screen.findAllByRole("listitem");
+  if (!firstCard) throw new Error("expected a product card");
+  const button = within(firstCard).getByRole("button", { name: "Додати в кошик" });
+
+  fireEvent.click(button);
+  expect(button).toBeDisabled();
+  fireEvent.click(button);
+
+  expect(addToBasket).toHaveBeenCalledTimes(1);
+  deliverBasket(oneLineBasket);
+  expect(await within(firstCard).findByRole("status")).toHaveTextContent("Додано");
+});
+
+test("Add fails", async () => {
+  vi.mocked(getProducts).mockResolvedValue(twoShopsResponse);
+  vi.mocked(getBasket).mockResolvedValue(emptyBasket);
+  vi.mocked(addToBasket).mockRejectedValue(new Error("POST /api/basket/items failed: 500"));
   render(<RouterProvider router={createMemoryRouter(routes, { initialEntries: ["/"] })} />);
 
   expect(await screen.findAllByRole("button", { name: "Додати в кошик" })).toHaveLength(3);
@@ -150,6 +171,7 @@ test("Failed add shows the failure text on the card", async () => {
   expect(within(thirdCard).queryByRole("status")).toBeNull();
   expect(addToBasket).toHaveBeenCalledTimes(1);
   expect(addToBasket).toHaveBeenCalledWith("karashynyard:1498486363994", 1);
-  expect(within(firstCard).getByRole("button", { name: "Додати в кошик" })).toBeInTheDocument();
+  // Enabled again, so the buyer can retry; the header keeps the last known count.
+  expect(within(firstCard).getByRole("button", { name: "Додати в кошик" })).toBeEnabled();
   expect(screen.getByRole("link", { name: "Кошик (0)" })).toHaveAttribute("href", "/basket");
 });

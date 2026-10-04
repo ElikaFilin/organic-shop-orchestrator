@@ -2,12 +2,12 @@ import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
-import type { BasketResponse, Product } from "@organic/shared";
+import type { BasketResponse, Product, StoredBasket } from "@organic/shared";
 import { afterEach, describe, expect, test } from "vitest";
 import { createApp } from "../app";
 import { createCatalogService } from "../lib/catalog";
 import { createSnapshotSource } from "../lib/snapshot";
-import { createBasketStore } from "../lib/store/baskets";
+import { createBasketStore, type BasketStore } from "../lib/store/baskets";
 
 const BASKET_A = "0f3c9d6e-7a1b-4c2d-9e8f-123456789abc";
 const BASKET_B = "6d2a1f0c-3b4e-4f5a-8c7d-0a1b2c3d4e5f";
@@ -42,6 +42,22 @@ const fakeCatalog: ReturnType<typeof createCatalogService> = {
   },
   findProduct: async (id) => snapshotProducts.find((candidate) => candidate.id === id),
 };
+
+/**
+ * A store that keeps the baskets in memory, so a test can seed a line the file schema would reject
+ * (`test:fraction` is not `<shopKey>:<sourceId>`) without touching the on-disk format.
+ */
+function memoryStore(initial: Record<string, StoredBasket>): BasketStore {
+  const baskets: Record<string, StoredBasket> = { ...initial };
+  return {
+    get: (id) => Promise.resolve(baskets[id]),
+    update: (id, mutate) => {
+      const next = mutate(baskets[id]);
+      if (next) baskets[id] = next;
+      return Promise.resolve(next);
+    },
+  };
+}
 
 const dirs: string[] = [];
 
@@ -166,6 +182,29 @@ describe("Basket contents and totals", () => {
     expect(body.items[1]).toEqual({ productId: "osio:000000000000000000000000", quantity: 1, product: null });
     expect(body.totals).toEqual({ count: 2, sum: 1330 });
   });
+
+  test("Non-integer price sums without float noise", async () => {
+    const fraction: Product = { ...kolrabi, id: "test:fraction", sourceId: "fraction", price: 19.99 };
+    const catalog: ReturnType<typeof createCatalogService> = {
+      ...fakeCatalog,
+      findProduct: async (id) => (id === fraction.id ? fraction : snapshotProducts.find((p) => p.id === id)),
+    };
+    const app = createApp({
+      catalog,
+      basketStore: memoryStore({
+        [BASKET_A]: {
+          updatedAt: "2026-10-04T10:00:00.000Z",
+          items: [{ productId: fraction.id, quantity: 3, addedAt: "2026-10-04T10:00:00.000Z" }],
+        },
+      }),
+    });
+
+    const res = await req(app, "GET", "/api/basket", { cookie: BASKET_A });
+
+    expect(res.status).toBe(200);
+    // A kopiyka price reaches the response as kopiykas; the noisy multiplications are in lib/basket.test.ts.
+    expect((await json(res)).totals).toEqual({ count: 3, sum: 59.97 });
+  });
 });
 
 describe("POST /api/basket/items", () => {
@@ -280,6 +319,29 @@ describe("PATCH /api/basket/items/:productId", () => {
 
     expect(res.status).toBe(404);
     expect(await res.json()).toEqual({ error: "Basket item not found" });
+  });
+
+  test("Clear and change the quantity race", async () => {
+    const { app } = newApp();
+    await req(app, "POST", "/api/basket/items", {
+      cookie: BASKET_A,
+      body: { productId: "karashynyard:1498486363994", quantity: 2 },
+    });
+
+    // The existence check must sit inside the store update, or the PATCH re-adds the line the DELETE dropped.
+    const [cleared, patched] = await Promise.all([
+      req(app, "DELETE", "/api/basket", { cookie: BASKET_A }),
+      req(app, "PATCH", "/api/basket/items/karashynyard:1498486363994", { cookie: BASKET_A, body: { quantity: 3 } }),
+    ]);
+
+    expect(cleared.status).toBe(200);
+    expect((await json(cleared)).items).toEqual([]);
+    expect(patched.status).toBe(404);
+    expect(await patched.json()).toEqual({ error: "Basket item not found" });
+
+    const after = await json(await req(app, "GET", "/api/basket", { cookie: BASKET_A }));
+    expect(after.items).toEqual([]);
+    expect(after.totals).toEqual({ count: 0, sum: 0 });
   });
 });
 

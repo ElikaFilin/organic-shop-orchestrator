@@ -7,9 +7,12 @@ export interface AppConfig {
   port: number;
   dataSource: DataSource;
   snapshotDir: string;
+  dataDir: string;
 }
 
 const DEFAULT_SNAPSHOT_DIR = fileURLToPath(new URL("../../../data/shops", import.meta.url));
+/** Runtime JSON stores live in <repo>/.data (git-ignored); DATA_DIR points them elsewhere. */
+const DEFAULT_DATA_DIR = fileURLToPath(new URL("../../../.data", import.meta.url));
 
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
   const rawDataSource = env.DATA_SOURCE ?? "live";
@@ -22,9 +25,14 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
   if (env.SNAPSHOT_DIR !== undefined && env.SNAPSHOT_DIR.trim() === "") {
     throw new Error("SNAPSHOT_DIR must be a non-empty path");
   }
+  // Same for the stores: an empty override would write baskets next to whatever started the process.
+  if (env.DATA_DIR !== undefined && env.DATA_DIR.trim() === "") {
+    throw new Error("DATA_DIR must be a non-empty path");
+  }
   return {
     port: Number(env.PORT ?? 4000),
     dataSource: dataSource.data,
     snapshotDir: env.SNAPSHOT_DIR ?? DEFAULT_SNAPSHOT_DIR,
+    dataDir: env.DATA_DIR ?? DEFAULT_DATA_DIR,
   };
 }

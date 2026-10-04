@@ -1,3 +1,6 @@
+import { mkdtempSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import type { CatalogResponse, Product } from "@organic/shared";
 import { describe, expect, test, vi } from "vitest";
@@ -6,6 +9,7 @@ import type { ShopAdapter } from "../shops/types";
 import { createTtlCache } from "./cache";
 import { createCatalogService, selectVisibleProducts, type ShopProducts } from "./catalog";
 import { createSnapshotSource } from "./snapshot";
+import { createBasketStore } from "./store/baskets";
 
 // The committed snapshots in data/shops/, passed as a value. Both fake adapters answer with "their 10 snapshot
 // products" exactly as the committed files hold them.
@@ -180,7 +184,8 @@ describe("createCatalogService", () => {
     expect(service.getSource()).toBe("live");
 
     service.setSource("snapshot");
-    const res = await createApp({ catalog: service }).request("/api/products");
+    const basketStore = createBasketStore(join(mkdtempSync(join(tmpdir(), "baskets-")), "baskets.json"));
+    const res = await createApp({ catalog: service, basketStore }).request("/api/products");
 
     expect(res.status).toBe(200);
     const body = (await res.json()) as CatalogResponse;

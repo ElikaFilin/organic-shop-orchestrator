@@ -179,6 +179,33 @@ describe("BasketPage", () => {
     expect(screen.getByRole("link", { name: "Кошик (1)" })).toBeInTheDocument();
   });
 
+  test("Quantity input keeps focus across an update", async () => {
+    const oneLine: BasketResponse = {
+      id: BASKET_A,
+      items: [{ ...fileIndychkyLine, quantity: 1 }],
+      totals: { count: 1, sum: 665 },
+    };
+    vi.mocked(getBasket).mockResolvedValue(oneLine);
+    vi.mocked(updateBasketItem).mockResolvedValue({
+      ...oneLine,
+      items: [{ ...fileIndychkyLine, quantity: 2 }],
+      totals: { count: 2, sum: 1330 },
+    });
+    renderBasketRoute();
+    const input = within(line(await findLines(), 0)).getByRole("spinbutton", { name: "Кількість" });
+    input.focus();
+    expect(input).toHaveFocus();
+
+    fireEvent.change(input, { target: { value: "2" } });
+
+    expect(await screen.findByText("Разом: 1330 ₴")).toBeInTheDocument();
+    const after = within(line(await findLines(), 0)).getByRole("spinbutton", { name: "Кількість" });
+    // Same row, same element: the line's identity is its productId, not its quantity.
+    expect(after).toBe(input);
+    expect(after).toHaveValue(2);
+    expect(after).toHaveFocus();
+  });
+
   test("Clearing the basket", async () => {
     vi.mocked(getBasket).mockResolvedValue(twoLineBasket);
     vi.mocked(clearBasket).mockResolvedValue(emptyBasket);
@@ -192,6 +219,21 @@ describe("BasketPage", () => {
     expect(screen.getByRole("link", { name: "До каталогу" })).toBeInTheDocument();
     expect(screen.queryByRole("list")).toBeNull();
     expect(screen.getByRole("link", { name: "Кошик (0)" })).toBeInTheDocument();
+  });
+
+  test("Removing a line fails", async () => {
+    vi.mocked(getBasket).mockResolvedValue(twoLineBasket);
+    vi.mocked(removeBasketItem).mockRejectedValue(
+      new Error("DELETE /api/basket/items/karashynyard:1498486363994 failed: 500"),
+    );
+    renderBasketRoute();
+    const before = await findLines();
+
+    fireEvent.click(within(line(before, 0)).getByRole("button", { name: "Видалити" }));
+
+    expect(await screen.findByRole("status")).toHaveTextContent("Не вдалося оновити кошик");
+    expect(await findLines()).toHaveLength(2);
+    expect(screen.getByText("Разом: 1525 ₴")).toBeInTheDocument();
   });
 
   test("Line without a product", async () => {

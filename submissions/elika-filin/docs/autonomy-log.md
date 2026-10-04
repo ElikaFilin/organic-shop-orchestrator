@@ -18,6 +18,7 @@
 | 8 | специфікацію змінено після реальності: заголовок `Application-Instance` для OSIO; + 6 знахідок code-reviewer, 1 — spec-reviewer | 1 · Асистент → 3 · Агент | людина вирішила, що приймати (усі 6 + уточнення «malformed item skipped» замість «fail the shop»), дописала сценарії й групи задач 8–9; реалізацію віддано циклу | коміт `docs(openspec): add-catalog — spec changed where reality disagreed`; `docs/reviews/2026-10-04-add-catalog-*.md`; другий прогін `docs/loops/2026-10-04T11-26-22-add-catalog.md` → зелений за 1 ітерацію, 40 тестів, $2.35 | рішення про обсяг — людські; код під гейтом — агентові |
 | 9 | `/opsx:archive add-catalog` → `openspec/specs/{catalog-api,catalog-web,shop-adapters}` | 3 · Агент + 1 · людина читає `## Purpose` | archive-агент за `.claude/commands/opsx/archive.md` (sync дельт у головні специфікації, `mv` в архів), verify-агент звірив кожну вимогу/сценарій; людина прочитала три `## Purpose` і не правила | коміт `docs(openspec): archive add-catalog…`; `spec:check ok — specs: 3 · active changes: 1 · archived: 1`; `validate --all --strict`: 4 passed | архів переносить вимоги в джерело правди для наступних змін — тому окремий verify-агент і людське читання Purpose, а не «архівуй усе» |
 | 10 | `add-basket`: propose (32 сценарії) → червоні тести → цикл → рев'ю | 4 · Агенти → 3 · Агент | propose: proposer + 2 критики + reviser; червоні тести: maker + checker (32/32 покрито); реалізація: `pnpm loop -- --change add-basket` — 1 ітерація, 100 ходів, 84 тести, $4.44; людина — smoke через curl і браузер | коміти `docs(openspec): propose add-basket`, `test(basket): … red`, `feat(basket)…`; `docs/loops/2026-10-04T12-06-56-add-basket.md`; `docs/reviews/2026-10-04-add-basket-*.md` | той самий детектор, що й у каталозі (гейт + stop-gate), той самий відкат; людина лишилась на рішеннях про обсяг і на smoke |
+| 11 | `add-basket`, рев'ю → група задач 8: цикл зупинився сам — «специфікація суперечить сама собі» | 3 · Агент → 1 · Асистент (на одному пункті) | агент за 2 ітерації закрив 3 з 5 задач і **відмовився** правити специфікацію, щоб тест пройшов: сценарій URL-кодування вимагав `osio%3Aa%23b`, сусідні — буквальну `:`. Людина вирішила: `:` лишається буквальною | `docs/loops/2026-10-04T12-19-57-add-basket.md` (ітерація 2, stop=stuck); коміт `docs(openspec): add-basket — the loop stopped on a self-contradictory spec; owner decided` | правило з промпту циклу «не правити специфікацію заради зеленого тесту» спрацювало як гальмо: рішення про контракт — людське, навіть на рівні 3 |
 
 ## Зміни рівня
 
@@ -39,6 +40,10 @@
 збірки; усе, що торкається `.env*` і секретів; `git push`.
 
 ## Що агент запропонував і що з цього не виконано
+
+Один випадок, коли агент запропонував неправильне і це зупинили: під час propose `add-catalog` критик зловив у design.md
+regex одиниці ваги з ASCII-`\b` (не збігається з жодною з 10 назв у `data/shops/karashynyard.json`) — виправлено до того,
+як це стало кодом. Один випадок, коли агент зупинив себе сам: рядок 11 (суперечлива специфікація URL-кодування).
 
 Вивід `pnpm agent:log` по `.agent-log/actions.jsonl` — вставляється наприкінці роботи:
 

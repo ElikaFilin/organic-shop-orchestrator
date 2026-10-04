@@ -122,6 +122,15 @@ test("Mutations send method, path and JSON body", async () => {
   expect(fetchMock).toHaveBeenCalledTimes(4);
 });
 
+test("Product id is URL-encoded in the path", async () => {
+  const fetchMock = vi.fn<typeof fetch>(async () => jsonResponse(200, emptyBasket));
+  vi.stubGlobal("fetch", fetchMock);
+
+  await updateBasketItem("osio:a#b", 2);
+
+  expect(fetchMock.mock.calls[0]?.[0]).toBe("/api/basket/items/osio:a%23b");
+});
+
 test("Failed request rejects with method, path and status", async () => {
   const fetchMock = vi.fn<typeof fetch>();
   vi.stubGlobal("fetch", fetchMock);

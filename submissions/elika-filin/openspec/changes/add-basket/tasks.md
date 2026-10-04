@@ -193,32 +193,28 @@ per-record validation in the store, atomic check-and-write for PATCH/DELETE, sta
 disabled button while adding, visible mutation failures, URL-encoded product ids, tests beside `lib/basket.ts`
 and `BasketLine.tsx`.
 
-- [ ] 8.1 Scenario tests first: `routes/basket.test.ts` "Non-integer price sums without float noise" and "Clear and
+- [x] 8.1 Scenario tests first: `routes/basket.test.ts` "Non-integer price sums without float noise" and "Clear and
   change the quantity race"; `lib/store/baskets.test.ts` "A corrupt record does not break other baskets";
   `pages/BasketPage.test.tsx` "Quantity input keeps focus across an update" and "Removing a line fails";
   `api/client.test.ts` "Product id is URL-encoded in the path"; `components/ProductCard.test.tsx` "Double click adds
   once" and "Add fails"; `config.test.ts` `DATA_DIR: ""` throws (spec-reviewer finding). Run `pnpm test`, quote the red lines.
-  **Blocked on one test only** — "Product id is URL-encoded in the path": `specs/basket-web/spec.md` contradicts
-  itself (see the note under 8.3). All seven other tests are written and the red run is in the transcript
-  (6 failed / 85 passed before 8.2–8.3, `Tests 102 passed (102)` after).
+  Seven tests were red before 8.2–8.3 (6 failed / 85 passed). The eighth, "Product id is URL-encoded in the path",
+  waited for the human decision on the `:` and is now red-then-green on its own:
+  `AssertionError: expected '/api/basket/items/osio:a#b' to be '/api/basket/items/osio:a%23b'`.
 - [x] 8.2 API: `lib/basket.ts` round `totals.sum` to 2 decimals and do the existence check inside the store update;
   `lib/store/baskets.ts` validate per record, skip and `console.error` corrupt ones; `config.ts` reject an empty
   `DATA_DIR`. Verify: the 8.1 API tests pass.
-- [ ] 8.3 Web: `BasketPage.tsx` key = `productId`; `BasketLine.tsx`/`BasketPage.tsx` show "Не вдалося оновити кошик"
+- [x] 8.3 Web: `BasketPage.tsx` key = `productId`; `BasketLine.tsx`/`BasketPage.tsx` show "Не вдалося оновити кошик"
   (`role="status"`) when a mutation rejects; `ProductCard.tsx` disable the button while pending and show
-  "Не вдалося додати" on failure; `api/client.ts` `encodeURIComponent(productId)`. Verify: the 8.1 web tests pass.
-  **Blocked on `encodeURIComponent(productId)` only** — spec conflict inside the requirement "Basket functions of
-  the API client": its scenario "Product id is URL-encoded in the path" wants
-  `updateBasketItem("osio:a#b", 2)` to fetch `/api/basket/items/osio%3Aa%23b`, but `encodeURIComponent` also
-  encodes the `:` of a real id, so the sibling scenarios "Mutations send method, path and JSON body"
-  (`/api/basket/items/karashynyard:1498486363994`) and "Failed request rejects with method, path and status"
-  (`PATCH /api/basket/items/karashynyard:1498486363994 failed: 404`) cannot hold at the same time. A human
-  decides which scenario is authoritative; no spec was edited. The other three items of 8.3 are done.
+  "Не вдалося додати" on failure; `api/client.ts` encodes the product id in the path. Verify: the 8.1 web tests pass.
+  Per the human decision of 2026-10-04 the `:` stays literal, so the path helper is
+  `encodeURIComponent(productId).replaceAll("%3A", ":")` — `osio:a#b` → `/api/basket/items/osio:a%23b`, while the
+  sibling scenarios keep `/api/basket/items/karashynyard:1498486363994` in the path and in the error message.
 - [x] 8.4 Add `apps/api/src/lib/basket.test.ts` (service: add/merge/cap, totals rounding, not-found results) and
   `apps/web/src/components/BasketLine.test.tsx` (renders name/unit/prices, quantity change calls back, remove calls
   back) beside the code — AGENTS.md / `.claude/rules/web.md`. Verify: `pnpm test` green.
 - [x] 8.5 Run `pnpm check` and quote its summary lines (Tests … passed, spec:check ok — …).
-  `node scripts/check-verdict.mjs` → GREEN: `Test Files  18 passed (18)`, `Tests  102 passed (102)`,
+  `node scripts/check-verdict.mjs` → GREEN: `Test Files  18 passed (18)`, `Tests  103 passed (103)`,
   `spec:check ok — specs: 3 · active changes: 2 · archived: 1`, `all hook checks passed`.
 
 ### Human smoke run (outside the loop, after 7.2)

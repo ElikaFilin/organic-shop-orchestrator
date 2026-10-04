@@ -1,7 +1,7 @@
 import { mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { afterEach, expect, test } from "vitest";
+import { afterEach, expect, test, vi } from "vitest";
 import { createBasketStore } from "./baskets";
 
 const BASKET_A = "0f3c9d6e-7a1b-4c2d-9e8f-123456789abc";
@@ -15,6 +15,21 @@ const basketA = {
   updatedAt: "2026-10-04T10:00:00.000Z",
   items: [{ productId: "karashynyard:1498486363994", quantity: 2, addedAt: "2026-10-04T10:00:00.000Z" }],
 };
+
+const VALID_RECORD = "11111111-1111-4111-8111-111111111111";
+const CORRUPT_RECORD = "22222222-2222-4222-8222-222222222222";
+const osioLine = { productId: "osio:6abcf192b7db2532803d266d", quantity: 1, addedAt: "2026-10-04T10:00:00.000Z" };
+
+// Two baskets, the second one holding a line whose productId is not "<shopKey>:<sourceId>".
+const FILE_WITH_CORRUPT_RECORD = JSON.stringify({
+  baskets: {
+    [VALID_RECORD]: { updatedAt: "2026-10-04T10:00:00.000Z", items: [osioLine] },
+    [CORRUPT_RECORD]: {
+      updatedAt: "2026-10-04T10:00:00.000Z",
+      items: [{ productId: "bad id", quantity: 1, addedAt: "2026-10-04T10:00:00.000Z" }],
+    },
+  },
+});
 
 const dirs: string[] = [];
 
@@ -58,6 +73,24 @@ test("Update writes the basket to the file", async () => {
   expect(written).toEqual(basketA);
   expect(readFile(file)).toEqual({ baskets: { [BASKET_A]: basketA } });
   await expect(store.get(BASKET_A)).resolves.toEqual(basketA);
+});
+
+test("A corrupt record does not break other baskets", async () => {
+  const dir = mkdtempSync(join(tmpdir(), "baskets-"));
+  dirs.push(dir);
+  writeFileSync(join(dir, "baskets.json"), FILE_WITH_CORRUPT_RECORD);
+  const store = createBasketStore(join(dir, "baskets.json"));
+  // The skip is reported on stderr; the test owns the console so the run stays readable.
+  const reported = vi.spyOn(console, "error").mockImplementation(() => {});
+
+  await expect(store.get(VALID_RECORD)).resolves.toEqual({
+    updatedAt: "2026-10-04T10:00:00.000Z",
+    items: [osioLine],
+  });
+  await expect(store.get(CORRUPT_RECORD)).resolves.toEqual({ updatedAt: "2026-10-04T10:00:00.000Z", items: [] });
+
+  expect(reported).toHaveBeenCalled();
+  reported.mockRestore();
 });
 
 test("Write is atomic and keeps other baskets", async () => {

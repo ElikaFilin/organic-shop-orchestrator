@@ -2,10 +2,17 @@ import type { CatalogResponse } from "@organic/shared";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import { createMemoryRouter, RouterProvider } from "react-router";
 import { beforeEach, describe, expect, test, vi } from "vitest";
-import { getProducts } from "../api/client";
+import { getBasket, getProducts } from "../api/client";
 import { routes } from "../router";
 
-vi.mock("../api/client", () => ({ getProducts: vi.fn() }));
+vi.mock("../api/client", () => ({
+  getProducts: vi.fn(),
+  getBasket: vi.fn(),
+  addToBasket: vi.fn(),
+  updateBasketItem: vi.fn(),
+  removeBasketItem: vi.fn(),
+  clearBasket: vi.fn(),
+}));
 const getProductsMock = vi.mocked(getProducts);
 
 type ShopSummary = CatalogResponse["shops"][number];
@@ -90,6 +97,12 @@ function renderRoute() {
 
 beforeEach(() => {
   getProductsMock.mockReset();
+  // The layout loads the basket on mount; these tests only care about the catalog below it.
+  vi.mocked(getBasket).mockReset().mockResolvedValue({
+    id: "0f3c9d6e-7a1b-4c2d-9e8f-123456789abc",
+    items: [],
+    totals: { count: 0, sum: 0 },
+  });
 });
 
 describe("CatalogPage", () => {

@@ -1,3 +1,4 @@
+import { mkdtempSync } from "node:fs";
 import { mkdtemp } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -8,6 +9,7 @@ import { createApp } from "../app";
 import { createTtlCache } from "../lib/cache";
 import { createCatalogService } from "../lib/catalog";
 import { createSnapshotSource } from "../lib/snapshot";
+import { createBasketStore } from "../lib/store/baskets";
 import type { ShopAdapter } from "../shops/types";
 
 // The committed snapshots in data/shops/, passed as a value. The fake adapters answer with "their 10 snapshot
@@ -70,7 +72,9 @@ function appWithFakeShops(source: DataSource, dir: string = snapshotDir) {
     cache: createTtlCache({ ttlMs: 300000, now: () => 0 }),
     now: () => 0,
   });
-  return { app: createApp({ catalog }), karashynyard, osio };
+  // The products routes never touch the basket, but the app requires a store: a temp one keeps it isolated.
+  const basketStore = createBasketStore(join(mkdtempSync(join(tmpdir(), "baskets-")), "baskets.json"));
+  return { app: createApp({ catalog, basketStore }), karashynyard, osio };
 }
 
 describe("GET /api/products", () => {

@@ -18,6 +18,12 @@ test("Config reads DATA_DIR", () => {
   expect(loadConfig({ DATA_DIR: "/tmp/organic-baskets" }).dataDir).toBe("/tmp/organic-baskets");
 });
 
+test("Empty DATA_DIR fails fast", () => {
+  const empty = () => loadConfig({ DATA_DIR: "" });
+  expect(empty).toThrow(Error);
+  expect(empty).toThrow(/^DATA_DIR must be a non-empty path$/);
+});
+
 test("Empty SNAPSHOT_DIR fails fast", () => {
   const empty = () => loadConfig({ SNAPSHOT_DIR: "" });
   expect(empty).toThrow(Error);
