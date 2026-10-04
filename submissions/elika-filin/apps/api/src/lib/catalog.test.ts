@@ -2,14 +2,24 @@ import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
-import type { CatalogResponse, Product } from "@organic/shared";
+import { defaultVisibility, type AdminSettings, type CatalogResponse, type Product } from "@organic/shared";
 import { describe, expect, test, vi } from "vitest";
 import { createApp } from "../app";
 import type { ShopAdapter } from "../shops/types";
 import { createTtlCache } from "./cache";
 import { createCatalogService, selectVisibleProducts, type ShopProducts } from "./catalog";
 import { createSnapshotSource } from "./snapshot";
+import { createAdminSettingsStore } from "./store/admin-settings";
 import { createBasketStore } from "./store/baskets";
+
+/** The admin settings of an app under test: a store over a fresh temp directory, so no test shares a file. */
+function tempSettingsStore(defaults?: AdminSettings) {
+  const dir = mkdtempSync(join(tmpdir(), "admin-settings-"));
+  return createAdminSettingsStore(
+    join(dir, "admin-settings.json"),
+    defaults ?? { dataSource: "snapshot", visibility: defaultVisibility() },
+  );
+}
 
 // The committed snapshots in data/shops/, passed as a value. Both fake adapters answer with "their 10 snapshot
 // products" exactly as the committed files hold them.
@@ -71,6 +81,7 @@ function liveService(now: () => number) {
     snapshots,
     cache: createTtlCache({ ttlMs: 300000, now }),
     now,
+    settings: { read: async () => ({ dataSource: "live", visibility: defaultVisibility() }) },
   });
   return { service, karashynyard, osio };
 }
@@ -211,6 +222,7 @@ describe("createCatalogService", () => {
         snapshots,
         cache: createTtlCache({ ttlMs: 300000, now: () => 0 }),
         now: () => 0,
+        settings: { read: async () => ({ dataSource: "live", visibility: defaultVisibility() }) },
       });
 
     expect(build).toThrow(Error);
@@ -223,7 +235,12 @@ describe("createCatalogService", () => {
 
     service.setSource("snapshot");
     const basketStore = createBasketStore(join(mkdtempSync(join(tmpdir(), "baskets-")), "baskets.json"));
-    const res = await createApp({ catalog: service, basketStore }).request("/api/products");
+    const res = await createApp({
+      catalog: service,
+      basketStore,
+      settingsStore: tempSettingsStore(),
+      adminToken: undefined,
+    }).request("/api/products");
 
     expect(res.status).toBe(200);
     const body = (await res.json()) as CatalogResponse;

@@ -3,14 +3,30 @@ import { mkdtemp } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
-import type { CatalogResponse, DataSource, Product } from "@organic/shared";
+import {
+  defaultVisibility,
+  type AdminSettings,
+  type CatalogResponse,
+  type DataSource,
+  type Product,
+} from "@organic/shared";
 import { describe, expect, test, vi } from "vitest";
 import { createApp } from "../app";
 import { createTtlCache } from "../lib/cache";
 import { createCatalogService } from "../lib/catalog";
 import { createSnapshotSource } from "../lib/snapshot";
+import { createAdminSettingsStore } from "../lib/store/admin-settings";
 import { createBasketStore } from "../lib/store/baskets";
 import type { ShopAdapter } from "../shops/types";
+
+/** The admin settings of an app under test: a store over a fresh temp directory, so no test shares a file. */
+function tempSettingsStore(defaults?: AdminSettings) {
+  const dir = mkdtempSync(join(tmpdir(), "admin-settings-"));
+  return createAdminSettingsStore(
+    join(dir, "admin-settings.json"),
+    defaults ?? { dataSource: "snapshot", visibility: defaultVisibility() },
+  );
+}
 
 // The committed snapshots in data/shops/, passed as a value. The fake adapters answer with "their 10 snapshot
 // products" exactly as the committed files hold them; snapshot mode and the fallback read the same files.
@@ -71,10 +87,12 @@ function appWithFakeShops(source: DataSource, dir: string = snapshotDir) {
     snapshots: createSnapshotSource(dir),
     cache: createTtlCache({ ttlMs: 300000, now: () => 0 }),
     now: () => 0,
+    settings: { read: async () => ({ dataSource: source, visibility: defaultVisibility() }) },
   });
   // The products routes never touch the basket, but the app requires a store: a temp one keeps it isolated.
   const basketStore = createBasketStore(join(mkdtempSync(join(tmpdir(), "baskets-")), "baskets.json"));
-  return { app: createApp({ catalog, basketStore }), karashynyard, osio };
+  const app = createApp({ catalog, basketStore, settingsStore: tempSettingsStore(), adminToken: undefined });
+  return { app, karashynyard, osio };
 }
 
 describe("GET /api/products", () => {

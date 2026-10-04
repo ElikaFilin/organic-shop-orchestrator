@@ -2,7 +2,7 @@ import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
-import type { AdminSettings, CatalogResponse, DataSource } from "@organic/shared";
+import type { AdminSettings, CatalogResponse, DataSource, Product } from "@organic/shared";
 import { afterEach, expect, test, vi } from "vitest";
 import { createApp } from "../app";
 import { loadConfig } from "../config";
@@ -29,6 +29,10 @@ const SNAPSHOT_DEFAULTS: AdminSettings = { dataSource: "snapshot", visibility: {
 const CHOSEN_TWO_FILE =
   '{"dataSource":"snapshot","visibility":{"karashynyard":["karashynyard:1743423686258","karashynyard:1498486363994"],"osio":null}}';
 const PERSISTED_SNAPSHOT_FILE = '{"dataSource":"snapshot","visibility":{"karashynyard":null,"osio":null}}';
+// Missing `visibility`, so the store's schema rejects the file.
+const CORRUPT_FILE = '{"dataSource":"snapshot"}';
+const ONE_CHOSEN_FILE =
+  '{"dataSource":"snapshot","visibility":{"karashynyard":["karashynyard:1743423686258"],"osio":null}}';
 
 const dirs: string[] = [];
 
@@ -150,4 +154,35 @@ test("Persisted data source overrides DATA_SOURCE", async () => {
   // No file: DATA_SOURCE (here the config default) wins.
   const empty = newSettingsStore(undefined, defaults);
   await expect(empty.read()).resolves.toMatchObject({ dataSource: "live" });
+});
+
+test("Corrupt settings file falls back to defaults", async () => {
+  const { app } = appOverSettings(CORRUPT_FILE);
+  const errors = vi.spyOn(console, "error").mockImplementation(() => {});
+
+  const { res, body } = await products(app);
+
+  expect(res.status).toBe(200);
+  expect(body.products).toHaveLength(20);
+  expect(body.shops).toMatchObject([
+    { key: "karashynyard", count: 10 },
+    { key: "osio", count: 10 },
+  ]);
+  expect(errors).toHaveBeenCalledTimes(1);
+  expect(String(errors.mock.calls[0]?.join(" "))).toContain("admin-settings.json");
+  errors.mockRestore();
+});
+
+test("Hidden product still resolves by id", async () => {
+  const { app } = appOverSettings(ONE_CHOSEN_FILE);
+
+  const res = await app.request("/api/products/karashynyard:1498486363994");
+  const product = (await res.json()) as Product;
+
+  expect(res.status).toBe(200);
+  expect(product).toMatchObject({ id: "karashynyard:1498486363994", price: 665 });
+
+  const listed = await products(app);
+  expect(listed.body.products).toHaveLength(11);
+  expect(listed.body.products.map((item) => item.id)).not.toContain("karashynyard:1498486363994");
 });

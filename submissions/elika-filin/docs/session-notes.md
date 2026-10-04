@@ -15,58 +15,41 @@
 
 Найновіший запис — зверху. Один запис на сесію, три рядки, без переказу розмови.
 
-### 2026-10-04 · сесія `add-basket` — закриття групи задач 8
+### 2026-10-04 · сесія `add-admin`
 
-- **Зроблено:** останнє зауваження рев'ю (№7) закрито після рішення людини: `:` у шляху лишається літеральним,
-  решта символів `productId` кодується. `api/client.ts` отримав `itemPath` —
-  `encodeURIComponent(productId).replaceAll("%3A", ":")`; тест «Product id is URL-encoded in the path» спершу
-  червоний (`expected '/api/basket/items/osio:a#b' to be '/api/basket/items/osio:a%23b'`), потім зелений.
-  Задачі 8.1 і 8.3 — `[x]`, усі 26 задач `add-basket` закриті. `pnpm check` → 103 passed (18 файлів).
-- **Не працює:** адмінки ще немає; у темній темі заголовки погано контрастні (виправити в `add-admin`, layout polish).
-- **Починати наступну сесію з:** `/opsx:archive add-basket` (людина читає `## Purpose` архівованої специфікації),
-  далі червоні тести `add-admin`.
-
-### 2026-10-04 · сесія `add-basket` — рев'ю (група задач 8)
-
-- **Зроблено:** вісім зауважень рев'ю згорнуто в код: `totals.sum` округлюється до копійок, перевірка наявності
-  рядка перенесена всередину `store.update` (гонка «очистити + змінити кількість»), стор валідує кожен запис
-  окремо (зіпсований рядок пропускається з `console.error`), `DATA_DIR: ""` падає одразу; на вебі ключ рядка
-  `/basket` — лише `productId` (інпут кількості не втрачає фокус), невдала мутація показує «Не вдалося оновити
-  кошик» (`role="status"`), кнопка «Додати в кошик» вимкнена під час запиту. Нові тести поряд із кодом:
-  `apps/api/src/lib/basket.test.ts`, `apps/web/src/components/BasketLine.test.tsx`. `pnpm check` → 102 passed (18 файлів).
-- **Не працює:** одне зауваження (№7, `encodeURIComponent` для `productId` у шляху) не реалізоване — специфікація
-  `specs/basket-web/spec.md` суперечить сама собі: сценарій «Product id is URL-encoded in the path» вимагає
-  `/api/basket/items/osio%3Aa%23b`, а сусідні сценарії — незакодованого `:` у шляху й у тексті помилки. Задачі
-  8.1 і 8.3 лишились `[ ]` саме через це; специфікацію не чіпали.
-- **Починати наступну сесію з:** рішення людини, який зі сценаріїв `basket-web` головний (кодувати `:` чи ні),
-  далі `/opsx:archive add-basket` і червоні тести `add-admin`.
+- **Зроблено:** `add-admin` реалізовано циклом за 1 ітерацію (110 ходів, $6.38): `ADMIN_TOKEN` у `config.ts`, підписана кука
+  `admin_session`, стор `admin-settings.json`, `GET/PUT /api/admin/*`, видимість у `selectVisibleProducts` (MODIFIED-вимога
+  каталогу), сторінка `/admin`, nav у шапці, примусова світла тема. `pnpm test` → 178 passed. Smoke (людина): login 204 /
+  401 / guard 401; `/api/admin/products` — 131 + 62 товари; hide → `karashynyard:live:9`; snapshot ↔ live; у браузері панель із
+  чекбоксами і «Видимих: 9».
+- **Не працює:** список видимості прив'язаний до id конкретного джерела: масив, зібраний у режимі «наживо», у режимі «знімок»
+  збігся лише з 1 товаром (`karashynyard:snapshot:1`) — за специфікацією («id, яких немає, ігноруються»), але для адміна
+  несподівано. Кандидат на наступну зміну: окрема видимість на джерело або підказка в панелі.
+- **Починати наступну сесію з:** рев'ю (`docs/reviews/2026-10-04-add-admin-*.md`) → `/opsx:archive add-admin` → фінальний README.
 
 ### 2026-10-04 · сесія `add-basket`
 
-- **Зроблено:** зміну `add-basket` реалізовано повністю — схеми кошика в `@organic/shared`, `dataDir`/`DATA_DIR`
-  у `config.ts`, атомарний JSON-стор `createBasketStore`, `createBasketService` (додати з мерджем і межею 99,
-  змінити, видалити, очистити), `/api/basket` з кукою `basket_id` (httpOnly, 30 днів), клієнт із п'ятьма
-  функціями, `BasketProvider` + лінк «Кошик (N)» у шапці, кнопка «Додати в кошик» на картці та сторінка
-  `/basket`. `pnpm test` → 84 passed (16 файлів).
-- **Не працює:** адмінки ще немає; у темній темі заголовки погано контрастні (виправити в `add-admin`, layout polish).
-- **Починати наступну сесію з:** `/opsx:archive add-basket` (smoke виконано, рев'ю — див. `docs/reviews/`), далі червоні тести `add-admin`.
+- **Зроблено:** `add-basket` — три прогони циклу (1 + 2 + 1 ітерації): кука `basket_id`, атомарний JSON-стор, сервіс кошика
+  (мердж, межа 99, округлення до копійок), `/api/basket`, `BasketProvider`, «Кошик (N)», кнопка на картці, `/basket`.
+  Другий прогін зупинився сам на суперечливій специфікації (URL-кодування `:`) — рішення людини, третій прогін закрив.
+  `pnpm test` → 103 passed. Архівовано → `openspec/specs/basket-api`, `basket-web`.
+- **Не працює:** адмінки ще не було; темна тема нечитабельна (перенесено в `add-admin`).
+- **Починати наступну сесію з:** `/opsx:propose add-admin` (виконано того ж дня).
 
 ### 2026-10-04 · сесія `add-catalog`
 
-- **Зроблено:** зміну `add-catalog` реалізовано повністю — схеми в `@organic/shared`, адаптери обох магазинів
-  (`parseKarashynyardHtml`, `parseOsioJson`), snapshot-рідер, TTL-кеш, `createCatalogService`,
-  `GET /api/products` + `/:id`, сторінка каталогу з React Router. Після smoke-прогону і двох рев'ю — ще 6 сценаріїв
-  (заголовок OSIO, `unavailable`, retry snapshot, de-dup, malformed item, доступні назви лінків). `pnpm test` → 40 passed (12 файлів).
-- **Не працює:** кошика й адмінки ще немає; у темній темі заголовки погано контрастні (виправити в `add-admin`, layout polish).
-- **Починати наступну сесію з:** людський smoke-прогін із `tasks.md` → заміна `smoke (людина, 2026-10-04, після виправлення заголовка OSIO): `live [ 'karashynyard:live:10', 'osio:live:10' ] 20`; перший прогін дав `osio:snapshot-fallback:10 ERR=osio: HTTP 400` — специфікацію змінено (група задач 8)` у чеклісті →
-  `/opsx:archive add-catalog`, далі `add-basket`.
+- **Зроблено:** `add-catalog` — три прогони циклу по 1 ітерації: адаптери обох магазинів, snapshot + fallback + TTL-кеш,
+  `GET /api/products`, сторінка каталогу. Після smoke наживо специфікацію змінено (заголовок `Application-Instance` для OSIO),
+  після двох раундів рев'ю додано 7 сценаріїв. `pnpm test` → 47 passed. Архівовано → `openspec/specs/{catalog-api,catalog-web,shop-adapters}`.
+- **Не працює:** кошика й адмінки ще не було.
+- **Починати наступну сесію з:** червоні тести `add-basket`.
 
 ### 2026-10-04 · сесія `capstone-старт`
 
-- **Зроблено:** каркас pnpm-workspace (`apps/api` Hono, `apps/web` Vite+React, `packages/shared`), харнес
-  курсу перенесено (hooks, allow-list, `.agent-log/`, `pnpm check`), OpenSpec закріплено як devDependency.
-- **Не працює:** продуктів ще немає — жодного адаптера, кошика, адмінки.
-- **Починати наступну сесію з:** `docs/intent.md` → `/opsx:propose add-catalog` (адаптери двох магазинів + каталог).
+- **Зроблено:** каркас pnpm-workspace (`apps/api` Hono, `apps/web` Vite+React, `packages/shared`), харнес курсу перенесено
+  (hooks, allow-list, `.agent-log/`, `pnpm check`), OpenSpec закріплено як devDependency, `docs/intent.md`.
+- **Не працює:** продуктів ще не було — жодного адаптера, кошика, адмінки.
+- **Починати наступну сесію з:** `docs/intent.md` → `/opsx:propose add-catalog`.
 
 ---
 
@@ -86,7 +69,15 @@
   (2 × 665 + 1 × 195 = `{ count: 3, sum: 1525 }`) і
   `✓ |web| src/pages/BasketPage.test.tsx > BasketPage > Changing the quantity updates the line 26ms`
   (`updateBasketItem("karashynyard:1498486363994", 3)` → «Разом: 2190 ₴»); smoke (людина, 2026-10-04): `curl` з cookie-jar — 2×665 + 1×195 → `totals { count: 3, sum: 1525 }`, PATCH 3 → 2190, DELETE → 1995, 404/400 як у специфікації; у браузері «Додати в кошик» ×2 → «Кошик (2)» → `/basket` показує 2 рядки і «Разом: 860 ₴»
-- [ ] адмінка `/admin`: токен, перемикач live/snapshot, видимість продуктів — доказ: ____
+- [x] адмінка `/admin`: токен, перемикач live/snapshot, видимість продуктів — доказ: `pnpm test`
+  → `✓ |api| src/routes/admin.test.ts > Admin login > Login with the right token sets the session cookie 15ms`
+  (204 + підписана кука `admin_session=admin.YbVzf199LMuIAnqKLH3KL2DLV4kY4JiTTy8hVnqndK0%3D`),
+  `✓ |api| src/routes/admin.test.ts > Change the data source > Switch to snapshot applies immediately 5ms`
+  (`PUT /api/admin/settings` → каталог віддає `snapshot`, адаптери не викликані, файл містить `"dataSource": "snapshot"`),
+  `✓ |api| src/routes/admin.test.ts > Toggle a product's visibility > Hide a visible product 3ms`
+  (сховане «Філе індички» → 9 ids у файлі, каталог віддає 19 продуктів) і
+  `✓ |web| src/pages/AdminPage.test.tsx > Product visibility checkboxes > Unticking hides a product 23ms`
+  (`setProductVisibility("karashynyard:1498486363994", false)` → «Видимих: 1», чекбокс знято); smoke (людина, 2026-10-04): `curl` — login 204 з кукою `admin_session`, 401 на хибний токен і без куки; `GET /api/admin/products` → 131 + 62 товари; `PUT …/visibility {visible:false}` → `karashynyard:live:9`; `PUT /api/admin/settings {dataSource:"snapshot"}` → `source: snapshot`; у браузері `/admin` → форма → панель, «Видимих: 9», світла тема
 
 ---
 

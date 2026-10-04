@@ -8,6 +8,8 @@ export interface AppConfig {
   dataSource: DataSource;
   snapshotDir: string;
   dataDir: string;
+  /** Undefined = no admin configured; declared non-optional so every call site passes it explicitly. */
+  adminToken: string | undefined;
 }
 
 const DEFAULT_SNAPSHOT_DIR = fileURLToPath(new URL("../../../data/shops", import.meta.url));
@@ -34,5 +36,8 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     dataSource: dataSource.data,
     snapshotDir: env.SNAPSHOT_DIR ?? DEFAULT_SNAPSHOT_DIR,
     dataDir: env.DATA_DIR ?? DEFAULT_DATA_DIR,
+    // A blank token means "no admin yet" — failing fast would block the storefront for a copied .env.
+    adminToken:
+      env.ADMIN_TOKEN !== undefined && env.ADMIN_TOKEN.trim() !== "" ? env.ADMIN_TOKEN : undefined,
   };
 }

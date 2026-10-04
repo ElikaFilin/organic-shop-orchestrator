@@ -43,7 +43,10 @@ function newService(initial?: Record<string, StoredBasket>) {
   const store = memoryStore(initial);
   const service = createBasketService({
     store,
-    catalog: { findProduct: (id) => Promise.resolve(products.find((product) => product.id === id)) },
+    catalog: {
+      findProducts: (ids) =>
+        Promise.resolve(new Map(products.filter((product) => ids.includes(product.id)).map((p) => [p.id, p]))),
+    },
     now: () => Date.parse("2026-10-04T10:00:00.000Z"),
   });
   return { store, service };

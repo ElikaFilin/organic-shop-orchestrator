@@ -114,6 +114,61 @@ export type StoredBasket = z.infer<typeof StoredBasketSchema>;
 export const BasketsFileSchema = z.object({ baskets: z.record(z.string(), StoredBasketSchema) });
 export type BasketsFile = z.infer<typeof BasketsFileSchema>;
 
+/**
+ * Which products of each shop the storefront shows: `null` = the default first-ten rule,
+ * an array = the product ids the admin chose. A record keyed by the shop enum is exhaustive in zod 4,
+ * so both shops are required and a third shop key is a type error until it is added everywhere.
+ */
+export const ShopVisibilitySchema = z.record(ShopKeySchema, z.array(z.string()).nullable());
+export type ShopVisibility = z.infer<typeof ShopVisibilitySchema>;
+
+/** A function, so no shared mutable object escapes into a store or a service. */
+export const defaultVisibility = (): ShopVisibility => ({ karashynyard: null, osio: null });
+
+/** Also the shape of <dataDir>/admin-settings.json. */
+export const AdminSettingsSchema = z.object({
+  dataSource: DataSourceSchema,
+  visibility: ShopVisibilitySchema,
+});
+export type AdminSettings = z.infer<typeof AdminSettingsSchema>;
+
+/** Strict: a body that also carries `visibility` is refused with 400 rather than silently trimmed. */
+export const UpdateAdminSettingsSchema = z.strictObject({ dataSource: DataSourceSchema });
+export type UpdateAdminSettings = z.infer<typeof UpdateAdminSettingsSchema>;
+
+export const AdminLoginSchema = z.object({ token: z.string() });
+export type AdminLogin = z.infer<typeof AdminLoginSchema>;
+
+export const AdminSessionSchema = z.object({ authenticated: z.boolean() });
+export type AdminSession = z.infer<typeof AdminSessionSchema>;
+
+export const SetProductVisibilitySchema = z.object({ visible: z.boolean() });
+export type SetProductVisibility = z.infer<typeof SetProductVisibilitySchema>;
+
+export const ProductVisibilityResponseSchema = z.object({
+  id: ProductIdSchema,
+  visible: z.boolean(),
+  visibility: z.array(z.string()),
+});
+export type ProductVisibilityResponse = z.infer<typeof ProductVisibilityResponseSchema>;
+
+/** The admin listing counts every upstream product (`total`) and how many of them are shown (`visible`). */
+export const AdminShopSummarySchema = ShopSummarySchema.omit({ count: true }).extend({
+  total: z.number().int().min(0),
+  visible: z.number().int().min(0),
+});
+export type AdminShopSummary = z.infer<typeof AdminShopSummarySchema>;
+
+export const AdminProductSchema = ProductSchema.extend({ visible: z.boolean() });
+export type AdminProduct = z.infer<typeof AdminProductSchema>;
+
+export const AdminProductsResponseSchema = z.object({
+  source: DataSourceSchema,
+  shops: z.array(AdminShopSummarySchema),
+  products: z.array(AdminProductSchema),
+});
+export type AdminProductsResponse = z.infer<typeof AdminProductsResponseSchema>;
+
 /** The shape of a committed snapshot file in data/shops/<key>.json. */
 export const SnapshotFileSchema = z.object({
   shop: z.object({ key: ShopKeySchema, name: z.string(), url: z.string() }),

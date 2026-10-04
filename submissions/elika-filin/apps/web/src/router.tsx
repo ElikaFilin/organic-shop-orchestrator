@@ -1,5 +1,6 @@
 import { createBrowserRouter, type RouteObject } from "react-router";
 import { App } from "./App";
+import { AdminPage } from "./pages/AdminPage";
 import { BasketPage } from "./pages/BasketPage";
 import { CatalogPage } from "./pages/CatalogPage";
 
@@ -11,6 +12,7 @@ export const routes: RouteObject[] = [
     children: [
       { index: true, Component: CatalogPage },
       { path: "basket", Component: BasketPage },
+      { path: "admin", Component: AdminPage },
     ],
   },
 ];

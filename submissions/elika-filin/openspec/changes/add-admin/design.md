@@ -179,7 +179,8 @@ secret) and `undefined` when the cookie is missing or the signature is malformed
    `const settingsStore = createAdminSettingsStore(join(config.dataDir, "admin-settings.json"), { dataSource: config.dataSource, visibility: defaultVisibility() }); const settings = await settingsStore.read();`
    then `createCatalogService({ source: settings.dataSource, ..., settings: settingsStore })` and
    `createApp({ catalog, basketStore, settingsStore, adminToken: config.adminToken })` — the persisted source
-   wins over `DATA_SOURCE`, a corrupt file crashes startup with the zod message. Setup-only edits to existing
+   wins over `DATA_SOURCE`; a corrupt file no longer stops the boot — the `read()` is caught, the defaults
+   serve and one `console.error` names the file (review finding, task group 8). Setup-only edits to existing
    tests: `app.test.ts` (stub catalog gains `loadAll: async () => ({ source: "snapshot", shops: [] })`; new
    `createApp` arguments), `routes/products.test.ts` and `lib/catalog.test.ts` (`createCatalogService` gains
    `settings`; `createApp` gains the arguments), `routes/basket.test.ts` from `add-basket` (`fakeCatalog`
@@ -319,15 +320,17 @@ apps/web/src/theme.test.ts                            "Light color scheme is for
   cannot be revoked early (Non-Goal). Mitigation: `httpOnly`, `SameSite=Lax`, short `Max-Age`.
 - [`===` comparison, no rate limiting] → timing and brute force are theoretical on localhost with one admin;
   recorded as out of scope in proposal.md.
-- [Settings read on every catalog load] → one small file read per `GET /api/products` and per basket line
-  (`findProduct`); measured in microseconds against a 5-minute adapter cache. If it ever matters, the store
-  can memoise on `mtime` behind the same `read()`.
-- [Corrupt `admin-settings.json`] → startup fails with the zod message; at runtime the catalog and the admin
-  answer 500 until a human fixes or deletes the file (the basket-store precedent); chosen over silently
-  resetting the admin's choices.
-- [Hidden product in a basket] → `findProduct` searches the served list, so a hidden product becomes
-  `product: null` in baskets that hold it; `add-basket` already renders "Товар недоступний" and counts it as
-  zero. Mentioned in proposal.md Impact.
+- [Settings read on every catalog load] → one small file read per `GET /api/products`; a basket resolves all
+  its lines through one `catalog.findProducts(ids)`, so it is one read per request, not one per line (review
+  finding, task group 8). Measured in microseconds against a 5-minute adapter cache. If it ever matters, the
+  store can memoise on `mtime` behind the same `read()`.
+- [Corrupt `admin-settings.json`] → the storefront keeps serving: boot and every catalog load catch the read,
+  fall back to the defaults and report the file name once on stderr. The admin routes still answer 500, so the
+  admin's own choices are never silently rewritten, but one bad file no longer takes `/api/products` and the
+  baskets down (review finding, task group 8).
+- [Hidden product in a basket] → `findProducts` searches the **full** lists (`loadAll()`), so a product the
+  admin hides keeps its price in baskets that hold it and still resolves by id; only `GET /api/products` is
+  filtered. `product: null` stays the answer for a product that left the shop upstream.
 - [Visibility ids vs. live list] → an array chosen in snapshot mode may name ids the live page lacks (and vice
   versa, the snapshot being a hand-picked ten); they are ignored, never an error, and the admin listing shows
   the current source's full list so the admin can re-tick. `add-catalog`'s reused-lid risk (two live products

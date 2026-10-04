@@ -107,8 +107,8 @@ curated; it is written after `add-basket`'s delta specs and design, which it bui
   their types.
 - Runtime: `.data/admin-settings.json` is created on the first admin write; `.env` needs `ADMIN_TOKEN` for the
   admin to work (without it the storefront runs and `/admin` says "Адмінку не налаштовано"). A product the
-  admin hides becomes `product: null` in baskets that hold it (`add-basket` already renders "Товар
-  недоступний").
+  admin hides disappears from `GET /api/products` but still resolves by id, so a basket that holds it keeps
+  its price (`add-basket`'s "Товар недоступний" stays for products that left the shop upstream).
 - Dependencies: none added — `hono/cookie` (`setSignedCookie`, `getSignedCookie`, `deleteCookie`) ships with
   `hono`; zod only through `@organic/shared` (`apps/web` does not import `zod` itself — it is not resolvable
   from there, so the client types its schema option structurally).

@@ -1,1 +1,6 @@
 @import "tailwindcss";
+
+/* The storefront is designed light: the OS dark mode must not repaint form controls and headings. */
+:root {
+  color-scheme: light;
+}

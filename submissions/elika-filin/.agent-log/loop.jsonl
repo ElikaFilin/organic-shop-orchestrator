@@ -5,3 +5,5 @@
 {"ts":"2026-10-04T12:29:59.872Z","change":"add-basket","iteration":1,"gateBefore":0,"gateAfter":0,"tasksBefore":"21/26","tasksAfter":"24/26","turns":70,"outputTokens":44678,"costUsd":5.3984,"agentMs":585178,"spentUsd":5.3984}
 {"ts":"2026-10-04T12:31:27.861Z","change":"add-basket","iteration":2,"gateBefore":0,"gateAfter":0,"tasksBefore":"24/26","tasksAfter":"24/26","turns":9,"outputTokens":3641,"costUsd":0.4674,"agentMs":71345,"spentUsd":5.8658}
 {"ts":"2026-10-04T12:34:25.490Z","change":"add-basket","iteration":1,"gateBefore":0,"gateAfter":0,"tasksBefore":"24/26","tasksAfter":"26/26","turns":17,"outputTokens":6800,"costUsd":0.8374,"agentMs":98294,"spentUsd":0.8374}
+{"ts":"2026-10-04T13:17:30.029Z","change":"add-admin","iteration":1,"gateBefore":2,"gateAfter":0,"tasksBefore":"12/26","tasksAfter":"26/26","turns":110,"outputTokens":42056,"costUsd":6.3756,"agentMs":536080,"spentUsd":6.3756}
+{"ts":"2026-10-04T13:27:29.065Z","change":"add-admin","iteration":1,"gateBefore":0,"gateAfter":0,"tasksBefore":"26/30","tasksAfter":"30/30","turns":63,"outputTokens":22773,"costUsd":3.3199,"agentMs":317831,"spentUsd":3.3199}

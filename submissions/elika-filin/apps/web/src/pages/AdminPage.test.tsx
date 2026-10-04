@@ -373,6 +373,45 @@ describe("Data source switch", () => {
     expect(getAdminProducts).toHaveBeenCalledTimes(1);
     expect(within(region("Карашин Яр")).getByText("наживо")).toBeInTheDocument();
   });
+
+  test("Save failure clears the earlier success", async () => {
+    vi.mocked(getAdminSession).mockResolvedValue({ authenticated: true });
+    vi.mocked(getAdminSettings).mockResolvedValue(snapshotSettings);
+    vi.mocked(getAdminProducts)
+      .mockResolvedValueOnce(snapshotFourProductResponse)
+      .mockResolvedValueOnce(fourProductResponse);
+    vi.mocked(updateSettings)
+      .mockResolvedValueOnce(liveSettings)
+      .mockRejectedValueOnce(new Error("PUT /api/admin/settings failed: 500"));
+    await renderPanel();
+
+    fireEvent.click(radio("Наживо"));
+    expect(await screen.findByRole("status")).toHaveTextContent("Збережено");
+
+    fireEvent.click(radio("Знімок"));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("Не вдалося зберегти");
+    expect(screen.queryByText("Збережено")).toBeNull();
+    expect(radio("Наживо")).toBeChecked();
+    expect(radio("Знімок")).not.toBeChecked();
+  });
+
+  test("Reload failure after a successful save", async () => {
+    mockAuthenticatedPanel();
+    // The save applied; only the reload of the sections failed.
+    vi.mocked(getAdminProducts)
+      .mockResolvedValueOnce(fourProductResponse)
+      .mockRejectedValueOnce(new Error("GET /api/admin/products failed: 500"));
+    vi.mocked(updateSettings).mockResolvedValue(snapshotSettings);
+    await renderPanel();
+
+    fireEvent.click(radio("Знімок"));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("Не вдалося завантажити адмін-панель");
+    expect(screen.getByRole("status")).toHaveTextContent("Збережено");
+    expect(screen.queryByText("Не вдалося зберегти")).toBeNull();
+    expect(radio("Знімок")).toBeChecked();
+  });
 });
 
 describe("Product visibility checkboxes", () => {

@@ -301,16 +301,16 @@ a successful save is reported as a load error; the basket resolves all its lines
 one per line. Declined (owner): a nonce/expiry inside the session signature — `Max-Age` + token rotation is enough for
 a single-admin local tool; recorded in docs/autonomy-log.md.
 
-- [ ] 8.1 Scenario tests first: `products-visibility.test.ts` "Corrupt settings file falls back to defaults" and
+- [x] 8.1 Scenario tests first: `products-visibility.test.ts` "Corrupt settings file falls back to defaults" and
   "Hidden product still resolves by id"; `AdminPage.test.tsx` "Save failure clears the earlier success" and "Reload
   failure after a successful save". Run `pnpm test`, quote the red lines.
-- [ ] 8.2 API: `lib/catalog.ts` catch the settings read (defaults + one `console.error` naming the file) and make
+- [x] 8.2 API: `lib/catalog.ts` catch the settings read (defaults + one `console.error` naming the file) and make
   `findProduct` search `loadAll()`; `server.ts` catch the boot-time settings read the same way; `lib/basket.ts` resolve
   lines through one `loadAll()` per request (add a `findProducts(ids)` or equivalent) — existing basket tests stay green.
   Verify: the 8.1 API tests pass; `pnpm typecheck` exits 0.
-- [ ] 8.3 Web: `AdminPage.tsx` clear `saved` on a failed save; split the reload into its own try so a reload failure
+- [x] 8.3 Web: `AdminPage.tsx` clear `saved` on a failed save; split the reload into its own try so a reload failure
   shows "Не вдалося завантажити адмін-панель" and keeps "Збережено". Verify: the 8.1 web tests pass.
-- [ ] 8.4 Run `pnpm check` and quote its summary lines (Tests … passed, spec:check ok — …).
+- [x] 8.4 Run `pnpm check` and quote its summary lines (Tests … passed, spec:check ok — …).
 
 ### Human smoke run (outside the loop, after 7.2)
 

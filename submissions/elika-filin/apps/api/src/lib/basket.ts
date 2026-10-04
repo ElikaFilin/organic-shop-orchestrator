@@ -12,7 +12,7 @@ export type BasketResult =
 
 export interface BasketServiceOptions {
   store: BasketStore;
-  catalog: Pick<CatalogService, "findProduct">;
+  catalog: Pick<CatalogService, "findProducts">;
   now: () => number;
 }
 
@@ -29,15 +29,18 @@ const NO_ITEMS: StoredBasket["items"] = [];
 export function createBasketService({ store, catalog, now }: BasketServiceOptions): BasketService {
   const timestamp = () => new Date(now()).toISOString();
 
-  /** Joins every stored line with the catalog; totals ignore lines whose product is gone. */
+  /**
+   * Joins every stored line with the catalog; totals ignore lines whose product is gone.
+   * One catalog lookup for all the lines, so a twenty-line basket is still one catalog load.
+   */
   async function toResponse(id: string, stored: StoredBasket | undefined): Promise<BasketResponse> {
-    const items: BasketLine[] = await Promise.all(
-      (stored?.items ?? []).map(async (line) => ({
-        productId: line.productId,
-        quantity: line.quantity,
-        product: (await catalog.findProduct(line.productId)) ?? null,
-      })),
-    );
+    const lines = stored?.items ?? NO_ITEMS;
+    const found = await catalog.findProducts(lines.map((line) => line.productId));
+    const items: BasketLine[] = lines.map((line) => ({
+      productId: line.productId,
+      quantity: line.quantity,
+      product: found.get(line.productId) ?? null,
+    }));
     const totals = items.reduce(
       (acc, line) =>
         line.product
@@ -58,7 +61,7 @@ export function createBasketService({ store, catalog, now }: BasketServiceOption
 
     async addItem(id, { productId, quantity }) {
       // Resolved before the write, so a 404 leaves the basket untouched.
-      const product = await catalog.findProduct(productId);
+      const product = (await catalog.findProducts([productId])).get(productId);
       if (!product) return { ok: false, error: "Product not found" };
       const updatedAt = timestamp();
       const stored = await store.update(id, (current) => {

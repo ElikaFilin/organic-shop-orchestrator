@@ -2,11 +2,18 @@ import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
-import type { BasketResponse, Product, StoredBasket } from "@organic/shared";
+import {
+  defaultVisibility,
+  type AdminSettings,
+  type BasketResponse,
+  type Product,
+  type StoredBasket,
+} from "@organic/shared";
 import { afterEach, describe, expect, test } from "vitest";
 import { createApp } from "../app";
 import { createCatalogService } from "../lib/catalog";
 import { createSnapshotSource } from "../lib/snapshot";
+import { createAdminSettingsStore } from "../lib/store/admin-settings";
 import { createBasketStore, type BasketStore } from "../lib/store/baskets";
 
 const BASKET_A = "0f3c9d6e-7a1b-4c2d-9e8f-123456789abc";
@@ -29,7 +36,7 @@ const fileIndychky = product("karashynyard:1498486363994");
 const kolrabi = product("osio:6abcf192b7db2532803d266d");
 const ohirochky = product("osio:69e5236361852dec4059d4e8");
 
-// Only findProduct is exercised through the basket; the rest would hide a wrong dependency, so it throws.
+// Only the product lookups are exercised through the basket; the rest would hide a wrong dependency, so it throws.
 const fakeCatalog: ReturnType<typeof createCatalogService> = {
   getSource: () => {
     throw new Error("not used");
@@ -40,8 +47,18 @@ const fakeCatalog: ReturnType<typeof createCatalogService> = {
   load: () => {
     throw new Error("not used");
   },
+  loadAll: async () => {
+    throw new Error("not used");
+  },
   findProduct: async (id) => snapshotProducts.find((candidate) => candidate.id === id),
+  findProducts: async (ids) => productMap(snapshotProducts, ids),
 };
+
+/** The catalog's lookup over a fixed list: the wanted ids that exist, by id. */
+function productMap(available: Product[], ids: string[]): Map<string, Product> {
+  const wanted = new Set(ids);
+  return new Map(available.filter((candidate) => wanted.has(candidate.id)).map((p) => [p.id, p]));
+}
 
 /**
  * A store that keeps the baskets in memory, so a test can seed a line the file schema would reject
@@ -61,12 +78,28 @@ function memoryStore(initial: Record<string, StoredBasket>): BasketStore {
 
 const dirs: string[] = [];
 
+/** The admin settings of an app under test: a store over a fresh temp directory, so no test shares a file. */
+function tempSettingsStore(defaults?: AdminSettings) {
+  const dir = mkdtempSync(join(tmpdir(), "admin-settings-"));
+  dirs.push(dir);
+  return createAdminSettingsStore(
+    join(dir, "admin-settings.json"),
+    defaults ?? { dataSource: "snapshot", visibility: defaultVisibility() },
+  );
+}
+
 /** A fresh app over a basket store in an empty temp directory. */
 function newApp() {
   const dir = mkdtempSync(join(tmpdir(), "baskets-"));
   dirs.push(dir);
   const basketStore = createBasketStore(join(dir, "baskets.json"));
-  return { app: createApp({ catalog: fakeCatalog, basketStore }), basketStore };
+  const app = createApp({
+    catalog: fakeCatalog,
+    basketStore,
+    settingsStore: tempSettingsStore(),
+    adminToken: undefined,
+  });
+  return { app, basketStore };
 }
 
 afterEach(() => {
@@ -188,6 +221,7 @@ describe("Basket contents and totals", () => {
     const catalog: ReturnType<typeof createCatalogService> = {
       ...fakeCatalog,
       findProduct: async (id) => (id === fraction.id ? fraction : snapshotProducts.find((p) => p.id === id)),
+      findProducts: async (ids) => productMap([fraction, ...snapshotProducts], ids),
     };
     const app = createApp({
       catalog,
@@ -197,6 +231,8 @@ describe("Basket contents and totals", () => {
           items: [{ productId: fraction.id, quantity: 3, addedAt: "2026-10-04T10:00:00.000Z" }],
         },
       }),
+      settingsStore: tempSettingsStore(),
+      adminToken: undefined,
     });
 
     const res = await req(app, "GET", "/api/basket", { cookie: BASKET_A });
