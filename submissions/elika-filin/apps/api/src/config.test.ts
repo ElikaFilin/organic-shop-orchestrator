@@ -1,7 +1,7 @@
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { expect, test } from "vitest";
-import { mkdtempSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { loadConfig, loadDotEnv } from "./config";
 
@@ -48,4 +48,10 @@ test("loadDotEnv reads ADMIN_TOKEN from a .env file and ignores a missing file",
   writeFileSync(resolve(dir, ".env"), "# comment\nADMIN_TOKEN=from-dotenv-test\nORGANIC_UNUSED=1\n");
   expect(loadDotEnv(resolve(dir, ".env"))).toBe(true);
   expect(loadConfig().adminToken).toBe("from-dotenv-test");
+  // Unreadable .env (here: a directory) is reported, not thrown — the API still boots.
+  mkdirSync(resolve(dir, "dir.env"));
+  expect(loadDotEnv(resolve(dir, "dir.env"))).toBe(false);
+  rmSync(dir, { recursive: true, force: true });
+  // Note: process.loadEnvFile writes into the worker's own environment; vitest isolates test files per worker,
+  // and this is the last test in the file, so the token does not leak into other tests.
 });

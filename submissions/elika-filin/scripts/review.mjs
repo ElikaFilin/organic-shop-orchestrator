@@ -20,8 +20,9 @@ const arg = (name, fallback) => {
 const change = arg("--change");
 const agentName = arg("--agent", "spec-reviewer");
 const model = arg("--model");
+const diffRange = arg("--diff"); // e.g. 41cc362..fb8f97d — review committed work instead of the working tree
 if (!change) {
-  console.error("usage: pnpm review -- --change <openspec-change-id> [--agent spec-reviewer|code-reviewer] [--model id]");
+  console.error("usage: pnpm review -- --change <id> [--agent spec-reviewer|code-reviewer] [--model id] [--diff <git range>]");
   process.exit(2);
 }
 const root = process.cwd();
@@ -48,7 +49,7 @@ const changeDir = existsSync(join(root, "openspec", "changes", change))
 const prompt = `${body}
 
 ---
-Review request: change "${change}" at ${changeDir}. Today is ${new Date().toISOString().slice(0, 10)}.`;
+Review request: change "${change}" at ${changeDir}. Today is ${new Date().toISOString().slice(0, 10)}.${diffRange ? `\nThe work is already committed: review \`git diff ${diffRange}\` (and \`git show\` of those commits) instead of the working tree, which is clean.` : ""}`;
 
 const stamp = new Date().toISOString().slice(0, 10);
 mkdirSync(join(root, "docs", "reviews"), { recursive: true });

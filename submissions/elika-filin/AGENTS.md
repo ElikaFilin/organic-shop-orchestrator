@@ -13,7 +13,7 @@ than one file or running anything that is not on the allow-list in `.claude/sett
 ## Layout (pnpm workspace — one repo, two apps)
 
 - `apps/api` — Hono on Node, http://localhost:4000. Route handlers in `src/routes/`, pure logic in `src/lib/`,
-  shop adapters in `src/shops/`, JSON stores under `.data/` (git-ignored). Fixtures in `fixtures/`.
+  shop adapters in `src/shops/`, JSON stores in `.data/` (committed: shared admin settings; baskets rewritten locally). Fixtures in `fixtures/`.
 - `apps/web` — Vite + React 19 SPA, http://localhost:5173, proxies `/api` to the API. Pages in `src/pages/`,
   the API client in `src/api/`.
 - `packages/shared` — types and zod schemas both apps import as `@organic/shared`. No I/O, no framework imports.

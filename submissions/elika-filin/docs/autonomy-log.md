@@ -24,8 +24,9 @@
 | 14 | рев'ю `add-admin`: code-reviewer FIX FIRST (7), spec-reviewer READY | 1 · Асистент (рішення) → 3 · Агент (цикл) | людина прийняла 6 знахідок (зіпсований файл налаштувань не кладе магазин; `findProduct` по повному списку, щоб прихований товар не зникав із кошика; повідомлення панелі; N+1) і **відхилила** одну: nonce/термін у підписі admin-куки — для локального інструмента з одним адміном досить `Max-Age` + ротації токена | `docs/reviews/2026-10-04-add-admin-*.md`; коміт `docs(openspec): add-admin — code review folded in (task group 8)`; прогін циклу T13-2x | відхилення — свідоме і записане: рецензент не вирішує обсяг, людина вирішує |
 | 15 | `/opsx:archive add-admin` → `openspec/specs/{admin-auth,admin-settings,admin-web}`, MODIFIED catalog-api, ADDED catalog-web; фінальний README і чернетка опису PR | 3 · Агент + 1 · людина читає `## Purpose` | archive-агент + verify-агент; людина прочитала 5 `## Purpose`, написала README/PR-опис із картою доказів | коміт `docs(openspec): archive add-admin…`; `spec:check ok — specs: 8 · active changes: 0 · archived: 3`; `pnpm check`: 182 тести | як у рядках 9 і 12 |
 | 16 | докази використання: `docs/evidence/*.md` з транскриптів 22 сесій `claude -p`, журналів workflow і `.agent-log`; 4 навмисні сесії для hooks | 4 · Агенти + 1 · людина | 8 паралельних агентів-«копачів» + 8 верифікаторів (4 файли виправлено після спростування) ; людина запустила 4 демо-сесії (`.env`, `process.env`, Stop без перевірки, `cat` журналу) і написала `hooks-demo.md` | `docs/evidence/`, `scripts/transcript-grep.mjs` (`pnpm transcripts`), `.agent-log/actions.jsonl` рядки 1551–1563 | власник попросив «справжній доказ, що практики використовувались, а не існують»; виявилось, що hooks примусу під час роботи не спрацьовували — це записано чесно, і додано живу демонстрацію |
-| 17 | перевірка «той самий застосунок у колеги»: свіжий клон `main` → `pnpm install --frozen-lockfile` → `pnpm check` → обидва сервери | 1 · Асистент | людина поставила питання; агент прогнав клон і знайшов, що API не читає `.env` (адмінка → 503 у колеги). Виправлення поза OpenSpec-зміною — одна функція `loadDotEnv` (`process.loadEnvFile`, без залежностей) + тест; людина мерджить гілку | гілка `fix/load-dotenv`; `pnpm check` → 183 тести; у клоні після fix: login 204 з токеном із `.env` | дрібна правка з тестом; рівень 1, бо поза зміною і торкається конфігурації запуску |
+| 17 | перевірка «той самий застосунок у колеги»: свіжий клон `main` → `pnpm install --frozen-lockfile` → `pnpm check` → обидва сервери | 1 · Асистент | людина поставила питання; агент прогнав клон і знайшов, що API не читає `.env` (адмінка → 503 у колеги). Виправлення поза OpenSpec-зміною — одна функція `loadDotEnv` (`process.loadEnvFile`, без залежностей) + тест; людина мерджить гілку | гілка `fix/load-dotenv` (злита PR #3); `pnpm check` → 183 тести; у клоні після fix: login 204 з токеном із `.env` | дрібна правка з тестом; рівень 1, бо поза зміною і торкається конфігурації запуску. **Чесно:** злито без рецензента; рецензію прогнано заднім числом (рядок 19) |
 | 18 | `.data/` у git: спільні налаштування адмінки для команди | 1 · Асистент | рішення власника («i need .data on git and admin settings»); агент зняв ігнор, поклав `admin-settings.json` з типовими значеннями і порожній `baskets.json` (тестові кошики не комітимо) | коміт на гілці `fix/load-dotenv`; README §1–2 | зміна того, що потрапляє в репозиторій, — людське рішення |
+| 19 | аудит за RUBRIC.md (6 незалежних рецензентів ×2: на гілці і на `main`) → виправлення: рецензія PR #3 заднім числом (`--diff`), 2 знахідки виправлено, журнали workflow і виклики Context7 перенесено в `sessions/`, числа в README/PR вирівняно, формулювання про `.data` виправлено | 4 · Агенти → 1 · Асистент | власник вирішив, що виправляти (пункти 2–5), і сам править тіло PR #33 (агент не має прав) | `docs/rubric-audit-2026-10-04.md`; `docs/reviews/2026-10-04-post-submission-dotenv-code-reviewer.md`; гілка `fix/audit-notes` | аудит — читання; правки — дрібні й під гейтом |
 
 ## Зміни рівня
 
@@ -52,17 +53,16 @@
 regex одиниці ваги з ASCII-`\b` (не збігається з жодною з 10 назв у `data/shops/karashynyard.json`) — виправлено до того,
 як це стало кодом. Один випадок, коли агент зупинив себе сам: рядок 11 (суперечлива специфікація URL-кодування).
 
-Вивід `pnpm agent:log` по `.agent-log/actions.jsonl` (станом на завершення `add-admin`, 2026-10-04; усі сесії —
-це прогони `claude -p` із `scripts/loop.mjs` і `scripts/review.mjs`, hooks активні в `-p`-режимі):
+Вивід `pnpm agent:log` по `.agent-log/actions.jsonl` (станом на завершення аудиту, 2026-10-04 ~17:20Z):
 
 ```
-Agent actions: 764 executed, 22 proposed but not executed, 3 failed — 18 session(s), 2026-10-04T10:18:08.527Z .. 2026-10-04T13:27:08.865Z
+Agent actions: 780 executed, 28 proposed but not executed, 4 failed — 22 session(s), 2026-10-04T10:18:08.527Z .. 2026-10-04T17:20:10.902Z
 ┌─────────┬─────────┬──────────┬──────────┬─────────┬────────┬──────────┬───────┐
 │ (index) │ tool    │ proposed │ executed │ blocked │ failed │ time (s) │ files │
 ├─────────┼─────────┼──────────┼──────────┼─────────┼────────┼──────────┼───────┤
-│ 0       │ 'Read'  │ 341      │ 341      │ 0       │ 0      │ 1.7      │ 85    │
-│ 1       │ 'Edit'  │ 207      │ 207      │ 0       │ 0      │ 0.5      │ 46    │
-│ 2       │ 'Bash'  │ 154      │ 132      │ 22      │ 3      │ 326.3    │ 0     │
+│ 0       │ 'Read'  │ 344      │ 344      │ 0       │ 0      │ 1.7      │ 86    │
+│ 1       │ 'Edit'  │ 209      │ 208      │ 1       │ 0      │ 0.5      │ 48    │
+│ 2       │ 'Bash'  │ 171      │ 144      │ 27      │ 4      │ 340.8    │ 0     │
 │ 3       │ 'Write' │ 41       │ 41       │ 0       │ 0      │ 0.1      │ 39    │
 │ 4       │ 'Grep'  │ 40       │ 40       │ 0       │ 0      │ 0.4      │ 0     │
 │ 5       │ 'Glob'  │ 3        │ 3        │ 0       │ 0      │ 0.4      │ 0     │
@@ -90,8 +90,15 @@ Proposed but not executed (blocked by a hook, a rule or you):
   2026-10-04T13:16:51.808Z  Bash  node scripts/check-verdict.mjs 2>&1 | tail -3 ; echo "---exit:$?"
   2026-10-04T13:16:55.254Z  Bash  node scripts/check-verdict.mjs > /tmp/verdict.txt 2>&1; echo "exit=$?"; grep -niE "green|red|verdict" /tmp/verdict.txt | tail -5
   2026-10-04T13:22:35.177Z  Bash  cd /Users/elikafilin/Documents/home_projects/organic-shop-orchestrator/submissions/elika-filin && grep -n "findProducts\|console.error\|corrupt\|Corrupt" openspec/changes/add-admin/design.md openspec/
+  2026-10-04T14:23:49.867Z  Edit  apps/api/src/routes/products.ts
+  2026-10-04T17:18:57.807Z  Bash  cd /tmp && mkdir -p lefile && printf 'ADMIN_TOKEN=from-file\n' > lefile/.env && ADMIN_TOKEN=from-shell node -e "process.loadEnvFile('/tmp/lefile/.env'); console.log('precedence result:', process.env.A
+  2026-10-04T17:19:02.705Z  Bash  node -e "require('node:fs').mkdirSync('/tmp/lefile2',{recursive:true});require('node:fs').writeFileSync('/tmp/lefile2/.env','ADMIN_TOKEN=from-file\n')" && ADMIN_TOKEN=from-shell node -e "process.loadE
+  2026-10-04T17:19:10.645Z  Bash  node -e "process.env.ADMIN_TOKEN='from-shell'; require('node:fs').writeFileSync('/tmp/organic-probe.txt','ADMIN_TOKEN=from-file\n'); process.loadEnvFile('/tmp/organic-probe.txt'); console.log('node', 
+  2026-10-04T17:20:08.452Z  Bash  ADMIN_TOKEN=shell-wins pnpm exec vitest run apps/api/src/config.test.ts 2>&1 | tail -30
+  2026-10-04T17:20:10.902Z  Bash  env ADMIN_TOKEN=shell-wins pnpm exec vitest run --project api src/config.test.ts 2>&1 | tail -30
 Failed:
   2026-10-04T11:16:53.077Z  Bash  exit=1  cat tsconfig.base.json tsconfig.json eslint.config.mjs apps/api/tsconfig.json apps/web/tsconfig.json packages/shared/tsconfig.json vitest.config.ts 2>/dev/null
   2026-10-04T11:20:14.429Z  Bash  exit=1  ls .agent-log && cat .agent-log/check-verdict.json 2>/dev/null
   2026-10-04T13:19:47.911Z  Bash  exit=1  sed -n '1,40p' apps/web/src/theme.test.ts; echo ===; sed -n '100,135p' apps/web/src/App.test.tsx; echo ===; cat apps/web/index.html; echo ===; cat apps/web/src/index.css; echo ===; cat apps/web/src/ro
+  2026-10-04T17:19:58.303Z  Bash  exit=1  grep -n "engines\|\"node\"\|packageManager" package.json apps/*/package.json packages/*/package.json 2>/dev/null; echo "=== nvmrc/tool-versions ==="; ls -a | grep -i "nvmrc\|tool-versions\|node-versio
 ```

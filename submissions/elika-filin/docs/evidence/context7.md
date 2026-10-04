@@ -1,6 +1,6 @@
 # Доказ використання · Практика #4 — MCP Context7 (динамічна документація)
 
-Позначення: `T` = `/Users/elikafilin/.claude/projects/-Users-elikafilin-Documents-home-projects-organic-shop-orchestrator/364dc8be-543d-4eb4-afd8-6b19b67b4f42.jsonl`
+Позначення: `T` = `<оркестратор-сесія 364dc8be…jsonl — поза репо; виклики Context7 з неї експортовано в submissions/elika-filin/sessions/context7-calls.jsonl, поле srcLine = номер рядка в оригіналі>`
 (головна сесія `364dc8be-543d-4eb4-afd8-6b19b67b4f42`); `W` = `…/364dc8be-543d-4eb4-afd8-6b19b67b4f42/subagents/workflows`. Часи — UTC з поля `timestamp`.
 
 ## 1. Що доводимо
@@ -155,8 +155,8 @@ admin.ts:40:     await setSignedCookie(c, COOKIE, "admin", secret, { ...COOKIE_O
 ## 3. Як відтворити
 
 ```bash
-T=/Users/elikafilin/.claude/projects/-Users-elikafilin-Documents-home-projects-organic-shop-orchestrator/364dc8be-543d-4eb4-afd8-6b19b67b4f42.jsonl
-W=/Users/elikafilin/.claude/projects/-Users-elikafilin-Documents-home-projects-organic-shop-orchestrator/364dc8be-543d-4eb4-afd8-6b19b67b4f42/subagents/workflows
+T=<оркестратор-сесія 364dc8be…jsonl — поза репо; виклики Context7 з неї експортовано в submissions/elika-filin/sessions/context7-calls.jsonl, поле srcLine = номер рядка в оригіналі>
+W=submissions/elika-filin/sessions/workflows
 for f in "$T" "$W"/wf_*/agent-*.jsonl; do node -e '
 const L=require("fs").readFileSync(process.argv[1],"utf8").split("\n");
 L.forEach((l,i)=>{let o;try{o=JSON.parse(l)}catch{return}
