@@ -1,0 +1,131 @@
+{
+  "shop": {
+    "key": "osio",
+    "name": "OSIO organic",
+    "url": "https://osio-organic.com.ua/"
+  },
+  "fetchedAt": "2026-10-04",
+  "verifiedBy": "independent checker agent: curl of every image and product URL, prices spot-checked against the live source",
+  "products": [
+    {
+      "sourceId": "6abcf192b7db2532803d266d",
+      "name": "Капуста кольрабі, органічна осіння",
+      "price": 195,
+      "currency": "UAH",
+      "imageUrl": "https://fra1.digitaloceanspaces.com/arsubs-1/6abcf18f504a4d6030570003",
+      "productUrl": "https://osio-organic.com.ua/products/6abcf192b7db2532803d266d",
+      "description": "🥬 Кольрабі — соковита, хрустка капуста з ніжним солодкуватим смаком. Ось чим вона корисна: • Вітамін С підтримує імунну систему, потрібен для утворення колагену та допомагає засвоювати залізо з рослинної їжі. • Клітковина сприяє регулярному випорожненню, підтримує кишкову мікрофлору й допомагає…",
+      "category": "Овочі",
+      "unit": "Качан 350-450 г",
+      "inStock": true
+    },
+    {
+      "sourceId": "6a31801b6f67d681cfdb7e21",
+      "name": "Картопля жовта органічна, мита",
+      "price": 95,
+      "currency": "UAH",
+      "imageUrl": "https://fra1.digitaloceanspaces.com/arsubs-1/6a9ab0e65adae0d7f041af69",
+      "productUrl": "https://osio-organic.com.ua/products/6a31801b6f67d681cfdb7e21",
+      "description": "🥔 Багата на вітамін С та антиоксиданти — органічна молода картопля підтримує імунітет, сприяє зміцненню судин та захищає клітини від окисного стресу. * 🌱 Містить багато калію — допомагає підтримувати нормальну роботу серця, регулює водний баланс організму та сприяє здоров’ю м’язів. * 🌾 Легко…",
+      "category": "Овочі",
+      "unit": "1 кг",
+      "inStock": true
+    },
+    {
+      "sourceId": "6a82acaa52fcb3f74e97821d",
+      "name": "Бурячок червоний органічний, митий",
+      "price": 99,
+      "currency": "UAH",
+      "imageUrl": "https://fra1.digitaloceanspaces.com/arsubs-1/6a82aca26c75b73590f6725e",
+      "productUrl": "https://osio-organic.com.ua/products/6a82acaa52fcb3f74e97821d",
+      "description": "Невеликі по 150-200 г плоди: 1. Джерело природних нітратів — сприяє утворенню оксиду азоту, що підтримує нормальний кровообіг і роботу судин. 2. Багатий на беталаїни — природні пігменти-антиоксиданти, які й надають буряку насиченого червоного кольору. 3. Клітковина для травлення — підтримує…",
+      "category": "Овочі",
+      "unit": "1 кг",
+      "inStock": true
+    },
+    {
+      "sourceId": "6a8ff0a6a35f0a23dbd72e16",
+      "name": "Гарбуз Баттернат, органічний",
+      "price": 150,
+      "currency": "UAH",
+      "imageUrl": "https://fra1.digitaloceanspaces.com/arsubs-1/6a8ff3161d774bb2ad433a15",
+      "productUrl": "https://osio-organic.com.ua/products/6a8ff0a6a35f0a23dbd72e16",
+      "description": "Гарбузики по 1,4-2 кг Органічний гарбуз баттернат — солодкуватий, ніжний, із легкою горіховою ноткою. Має мало насіння та багато м’якоті. З нього готують: * крем-супи; * запікають шматочками з травами, часником і сиром; * пюре та гарніри; * каші, рагу й овочеве карі; * начинку для пирогів, равіолі…",
+      "category": "Овочі",
+      "unit": "1 гарбузик (1,5-1,8 кг)",
+      "inStock": true
+    },
+    {
+      "sourceId": "69fc76b147aa5aa954e9f6ff",
+      "name": "Петрушка органічна",
+      "price": 150,
+      "currency": "UAH",
+      "imageUrl": "https://fra1.digitaloceanspaces.com/arsubs-1/69fc76aeb5a7e1e7298e52a5",
+      "productUrl": "https://osio-organic.com.ua/products/69fc76b147aa5aa954e9f6ff",
+      "description": "Пучок 100 г",
+      "category": "Зелень",
+      "unit": "100 г",
+      "inStock": true
+    },
+    {
+      "sourceId": "69f07bc589976dd914a4cb2b",
+      "name": "Рукола органічна, пряна",
+      "price": 150,
+      "currency": "UAH",
+      "imageUrl": "https://fra1.digitaloceanspaces.com/arsubs-1/69f2300e27a87f2e7d169333",
+      "productUrl": "https://osio-organic.com.ua/products/69f07bc589976dd914a4cb2b",
+      "description": "Пучок 100 г",
+      "category": "Зелень",
+      "unit": "100 г",
+      "inStock": true
+    },
+    {
+      "sourceId": "6a310d3a96137869d7b6835f",
+      "name": "Базилік зелений, органічний",
+      "price": 150,
+      "currency": "UAH",
+      "imageUrl": "https://fra1.digitaloceanspaces.com/arsubs-1/6a310d2b9996a1c301606e53",
+      "productUrl": "https://osio-organic.com.ua/products/6a310d3a96137869d7b6835f",
+      "description": "1. Потужний антиоксидант Містить ефірні олії, вітамін С, бета-каротин та поліфеноли, які допомагають захищати клітини організму від старіння та дії вільних радикалів. 2. Підтримує травлення Сприяє кращому засвоєнню їжі, зменшує здуття, стимулює виділення травних соків і допомагає роботі…",
+      "category": "Зелень",
+      "unit": "Пучок 75 г",
+      "inStock": true
+    },
+    {
+      "sourceId": "69e529d5a8a1a231476f05b4",
+      "name": "Малинове варення «Підковдрове»",
+      "price": 250,
+      "currency": "UAH",
+      "imageUrl": "https://fra1.digitaloceanspaces.com/arsubs-1/69e5464b3d0ff436e5a5d880",
+      "productUrl": "https://osio-organic.com.ua/products/69e529d5a8a1a231476f05b4",
+      "description": "Баночка варення 0,5 л",
+      "category": "Консервація",
+      "unit": "0.5 л",
+      "inStock": true
+    },
+    {
+      "sourceId": "6a96b06a4f68e2c27f40d429",
+      "name": "Мариновані баклажани «Гола правда», 1 л",
+      "price": 295,
+      "currency": "UAH",
+      "imageUrl": "https://fra1.digitaloceanspaces.com/arsubs-1/6a96b06280185cac226c2a13",
+      "productUrl": "https://osio-organic.com.ua/products/6a96b06a4f68e2c27f40d429",
+      "description": "🍆 Мариновані баклажани «Гола Правда» Ніжні баклажани, очищені від шкірки, у пряному маринаді з цибулею, часником і свіжою петрушкою. Яблучний оцет додає приємної кислинки, цукор м’яко врівноважує смак, а чорний перець та олія створюють насичений аромат. Баклажани виходять соковитими, ніжними й…",
+      "category": "Консервація",
+      "unit": "Відерце 1 л",
+      "inStock": true
+    },
+    {
+      "sourceId": "69e5236361852dec4059d4e8",
+      "name": "Огірочки мариновані «Щоб ручки не боліли»",
+      "price": 215,
+      "currency": "UAH",
+      "imageUrl": "https://fra1.digitaloceanspaces.com/arsubs-1/69e546273d0ff436e5a5d87c",
+      "productUrl": "https://osio-organic.com.ua/products/69e5236361852dec4059d4e8",
+      "description": "Мариновані огірочки в баночках по 0,7 літра",
+      "category": "Консервація",
+      "unit": "0,7 л",
+      "inStock": true
+    }
+  ]
+}

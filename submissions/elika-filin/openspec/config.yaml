@@ -1,0 +1,34 @@
+schema: spec-driven
+
+# Shown to the agent whenever it creates an artifact (proposal, specs, design, tasks).
+context: |
+  Product: Organic Catalog — one storefront over several organic shops (fwdays Agentic Engineering capstone).
+  Intent and the "done" criteria live in docs/intent.md; read it before proposing.
+  Stack: pnpm workspace. apps/api = Hono on Node (routes in src/routes/, pure logic in src/lib/, shop adapters in
+  src/shops/, JSON stores in .data/). apps/web = Vite + React 19 SPA with React Router, Tailwind 4, Testing Library.
+  packages/shared = types + zod schemas imported as @organic/shared by both apps. TypeScript strict, Vitest.
+  Shops: karashynyard.com.ua (Tilda; product data is embedded in the page HTML, data-product-lid ids) and
+  osio-organic.com.ua (Next.js front over a JSON API; products have 24-hex ids). Snapshot of 10 verified products
+  per shop is committed in data/shops/<shop>.json; adapter tests run on fixtures in apps/api/fixtures/, never live.
+  Prices are UAH numbers exactly as published. UI copy is Ukrainian; code, specs, commits are English.
+  process.env is read only in apps/api/src/config.ts (a hook blocks it elsewhere).
+  OpenSpec CLI: only as `pnpm exec openspec` (pinned devDependency), never a bare `openspec`.
+
+rules:
+  proposal:
+    - State what is out of scope for this change, in one bullet list.
+  specs:
+    - Every scenario names concrete input values and the exact expected output (ids, prices, counts, HTTP status, JSON shape), so a test can assert it.
+    - Use the product ids and prices from data/shops/*.json in scenarios, not invented ones.
+  tasks:
+    - Scenario tests come first. The first task group writes one test per spec scenario, runs `pnpm test` against the current code and quotes the failing lines; implementation tasks follow.
+    - The last task is "Run `pnpm check` and quote its summary lines (Tests … passed, spec:check ok — …)".
+
+operations:
+  apply:
+    guidance:
+      - Keep the red run visible — quote the failing assertions before implementing.
+      - Do not touch .env*, .agent-log/ or .claude/hooks/; ask before adding a dependency.
+  archive:
+    guidance:
+      - After the archive, a human reads the main spec's ## Purpose aloud; run `pnpm spec:check` and quote its line.

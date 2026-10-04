@@ -1,0 +1,36 @@
+{
+  "name": "organic-catalog",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Organic Catalog — one storefront over several organic shops (fwdays Agentic Engineering capstone)",
+  "scripts": {
+    "dev": "pnpm -r --parallel --stream run dev",
+    "build": "pnpm -r run build",
+    "typecheck": "pnpm -r run typecheck",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "check": "pnpm typecheck && pnpm lint && pnpm test && pnpm spec:check && pnpm hooks:selftest",
+    "spec:check": "node scripts/spec-check.mjs",
+    "openspec:pin": "node scripts/openspec-pin.mjs",
+    "hooks:selftest": "node scripts/hooks-selftest.mjs",
+    "agent:log": "node scripts/agent-log-summary.mjs",
+    "loop": "node scripts/loop.mjs",
+    "review": "node scripts/review.mjs",
+    "shops:refresh": "pnpm --filter @organic/api run shops:refresh"
+  },
+  "packageManager": "pnpm@10.28.0",
+  "engines": {
+    "node": ">=22.12"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@fission-ai/openspec": "1.14.0",
+    "eslint": "^10.12.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.71.0",
+    "vitest": "^5.0.3"
+  },
+  "type": "module"
+}
