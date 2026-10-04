@@ -1,3 +1,5 @@
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { expect, test } from "vitest";
 import { loadConfig } from "./config";
 
@@ -8,6 +10,12 @@ test("Config reads DATA_SOURCE", () => {
   const invalid = () => loadConfig({ DATA_SOURCE: "foo" });
   expect(invalid).toThrow(Error);
   expect(invalid).toThrow(/^DATA_SOURCE must be "live" or "snapshot", got "foo"$/);
+});
+
+test("Config reads DATA_DIR", () => {
+  // This test file sits next to config.ts, so the repository's .data resolves the same way from here.
+  expect(loadConfig({}).dataDir).toBe(resolve(dirname(fileURLToPath(import.meta.url)), "../../../.data"));
+  expect(loadConfig({ DATA_DIR: "/tmp/organic-baskets" }).dataDir).toBe("/tmp/organic-baskets");
 });
 
 test("Empty SNAPSHOT_DIR fails fast", () => {

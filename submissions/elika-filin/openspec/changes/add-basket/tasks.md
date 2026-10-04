@@ -10,13 +10,13 @@ the loop allow-list (`scripts/loop.mjs`): `pnpm test <path>`, `pnpm typecheck`, 
 
 ## 1. Scenario tests first (red run)
 
-- [ ] 1.1 Precondition (read-only, Grep tool): `add-catalog` is on disk — `export function createCatalogService`
+- [x] 1.1 Precondition (read-only, Grep tool): `add-catalog` is on disk — `export function createCatalogService`
   in `apps/api/src/lib/catalog.ts`, `export function createSnapshotSource` in `apps/api/src/lib/snapshot.ts`,
   `export const routes` in `apps/web/src/router.tsx`, `export function formatPrice` in
   `apps/web/src/components/ProductCard.tsx`, `export async function getProducts` (or `export const getProducts`)
   in `apps/web/src/api/client.ts`, `export const ProductSchema` in `packages/shared/src/index.ts`. Verify: all
   six patterns match; if any is missing, stop and report that this change cannot start before `add-catalog`.
-- [ ] 1.2 `apps/api/src/lib/store/baskets.test.ts` — four tests, one per scenario: "Missing file means no
+- [x] 1.2 `apps/api/src/lib/store/baskets.test.ts` — four tests, one per scenario: "Missing file means no
   baskets", "Reads a basket from an existing file", "Update writes the basket to the file", "Write is atomic
   and keeps other baskets". Each test creates `mkdtempSync(join(tmpdir(), "baskets-"))`, builds
   `createBasketStore(join(dir, "baskets.json"))` and removes the dir in `afterEach`
@@ -24,17 +24,19 @@ the loop allow-list (`scripts/loop.mjs`): `pnpm test <path>`, `pnpm typecheck`, 
   string from the scenario before creating the store; assertions use `readdirSync(dir)` and
   `JSON.parse(readFileSync(join(dir, "baskets.json"), "utf8"))`. Verify: the file imports `./baskets`, which
   does not exist yet.
-- [ ] 1.3 `apps/api/src/config.test.ts` — add the test "Config reads DATA_DIR" next to add-catalog's "Config
+- [x] 1.3 `apps/api/src/config.test.ts` — add the test "Config reads DATA_DIR" next to add-catalog's "Config
   reads DATA_SOURCE": `expect(loadConfig({}).dataDir).toBe(resolve(dirname(fileURLToPath(import.meta.url)), "../../../.data"))`
   (the test file sits in the same directory as `config.ts`) and
   `expect(loadConfig({ DATA_DIR: "/tmp/organic-baskets" }).dataDir).toBe("/tmp/organic-baskets")`. Verify:
   `pnpm test apps/api/src/config` reports it failing with `dataDir` being `undefined`.
-- [ ] 1.4 `apps/api/src/routes/basket.test.ts` — sixteen tests, one per route scenario: "First request sets
+- [x] 1.4 `apps/api/src/routes/basket.test.ts` — sixteen tests, one per route scenario: "First request sets
   the basket cookie", "Request with the cookie reuses the basket", "Malformed cookie gets a fresh basket",
   "Totals add up the lines", "Unavailable product counts zero", "Add a product with an explicit quantity",
   "Add without a quantity defaults to one", "Adding an existing line merges and caps at 99", "Unknown product
   is rejected", "Change the quantity", "Change a line that does not exist", "Remove a line", "Remove a line
-  that does not exist", "Clear a basket with lines", "Invalid body", "Invalid product id in the path".
+  that does not exist", "Clear a basket with lines", "Invalid body", "Invalid product id in the path" — plus
+  one test for requirement text that has no scenario, "Body that is not JSON is rejected" (a plain-text or
+  empty body answers 400 `{ error: "Invalid request body" }` and the basket is unchanged).
   Helpers live in the test file: `snapshotProducts()` — the 20 `Product`s from `data/shops/*.json` through
   `createSnapshotSource(<repo>/data/shops).read(key)` for both keys (dir resolved from `import.meta.url`);
   `fakeCatalog` — typed `ReturnType<typeof createCatalogService>`, `findProduct(id)` resolves from that list,
@@ -46,14 +48,14 @@ the loop allow-list (`scripts/loop.mjs`): `pnpm test <path>`, `pnpm typecheck`, 
   product counts zero" test seeds the store with `basketStore.update(...)` before the request; `Set-Cookie` is
   read with `res.headers.get("set-cookie")`. Verify: the file imports `./basket` and the new `createApp`
   signature, both missing yet.
-- [ ] 1.5 `apps/web/src/api/client.test.ts` — add three tests next to add-catalog's two: "getBasket requests
+- [x] 1.5 `apps/web/src/api/client.test.ts` — add three tests next to add-catalog's two: "getBasket requests
   the basket", "Mutations send method, path and JSON body", "Failed request rejects with method, path and
   status"; `vi.stubGlobal("fetch", vi.fn())` with `mockResolvedValueOnce(new Response(JSON.stringify(body), { status }))`
   per call and `expect(fetch).toHaveBeenCalledWith(path, expect.objectContaining({ method, credentials: "same-origin", … }))`;
   the osio `Product` literal comes from `data/shops/osio.json` (JSON import or inline, as add-catalog's client
   test does). Verify: the file imports `getBasket`, `addToBasket`, `updateBasketItem`, `removeBasketItem`,
   `clearBasket` from `./client` — none exported yet, so the run fails on the missing exports.
-- [ ] 1.6 `apps/web/src/components/ProductCard.test.tsx` — one test "Add from the catalog card":
+- [x] 1.6 `apps/web/src/components/ProductCard.test.tsx` — one test "Add from the catalog card":
   `vi.mock("../api/client")`; `vi.mocked(getProducts).mockResolvedValue(<two-shops response>)`,
   `vi.mocked(getBasket).mockResolvedValue(<empty basket>)`, `vi.mocked(addToBasket).mockResolvedValue(<one-line basket>)`;
   render `<RouterProvider router={createMemoryRouter(routes, { initialEntries: ["/"] })} />`;
@@ -61,15 +63,17 @@ the loop allow-list (`scripts/loop.mjs`): `pnpm test <path>`, `pnpm typecheck`, 
   `screen.getByRole("link", { name: "Кошик (0)" })`, `screen.queryByRole("status")` is null;
   `fireEvent.click` on the first button; `await within(firstCard).findByRole("status")` has text "Додано",
   the other two cards have no `status`; `expect(addToBasket).toHaveBeenCalledWith("karashynyard:1498486363994", 1)`
-  once; `await screen.findByRole("link", { name: "Кошик (1)" })` has `href="/basket"`. Verify: the test fails
-  on the missing button or the missing `getBasket` export.
-- [ ] 1.7 `apps/web/src/App.test.tsx` — add "Header link counts the lines on mount" next to the existing
+  once; `await screen.findByRole("link", { name: "Кошик (1)" })` has `href="/basket"`. A second test, "Failed
+  add shows the failure text on the card", covers design.md D7 (no scenario): `addToBasket` rejects, the
+  first card's `status` reads "Не вдалося додати", the other cards have none and the header stays
+  "Кошик (0)". Verify: the tests fail on the missing button or the missing `getBasket` export.
+- [x] 1.7 `apps/web/src/App.test.tsx` — add "Header link counts the lines on mount" next to the existing
   heading test: `vi.mock("./api/client")`, `getProducts` resolves with the two-shops response, `getBasket`
   resolves with the two-line basket (count 3); render the routes at `/`;
   `await screen.findByRole("link", { name: "Кошик (3)" })` has `href="/basket"`;
   `expect(getBasket).toHaveBeenCalledTimes(1)`. Give the existing heading test the same mocks so it stays
   green. Verify: the new test fails on the missing link.
-- [ ] 1.8 `apps/web/src/pages/BasketPage.test.tsx` — six tests: "Two lines with totals", "Empty basket",
+- [x] 1.8 `apps/web/src/pages/BasketPage.test.tsx` — six tests: "Two lines with totals", "Empty basket",
   "Changing the quantity updates the line", "Removing a line", "Clearing the basket", "Line without a
   product". Same mocking as 1.6, routes rendered at `/basket`; queries:
   `getByRole("heading", { level: 2, name: "Кошик" })`, `getByRole("list")` + `getAllByRole("listitem")`,
@@ -83,8 +87,14 @@ the loop allow-list (`scripts/loop.mjs`): `pnpm test <path>`, `pnpm typecheck`, 
   `getByRole("link", { name: "До каталогу" })`, `queryByRole("list")`, `queryByText(/^Разом:/)`,
   `screen.getAllByRole("img")` has length 1 in "Line without a product";
   `fireEvent.change(input, { target: { value: "3" } })` for the quantity, `fireEvent.click` for the buttons,
-  `findBy…` after each mutation. Verify: route `/basket` renders nothing yet — the heading query fails.
-- [ ] 1.9 Run `pnpm test` and quote the failing lines (one per new or extended test file: "Failed to resolve
+  `findBy…` after each mutation. Three more tests cover design.md D8 / D9 (no scenario): "Loading state
+  while the basket is fetched" (`getBasket` pending → heading, `status` "Завантажуємо кошик…", header
+  "Кошик (0)", no list; resolving it renders the lines), "Error state when the basket cannot be loaded"
+  (`getBasket` rejects → `status` "Не вдалося завантажити кошик", no list, header "Кошик (0)") and "A
+  rejected mutation leaves the last known basket on screen" (`updateBasketItem` and `removeBasketItem`
+  reject → both lines, "Разом: 1525 ₴" and "Кошик (3)" stay). Verify: route `/basket` renders nothing yet —
+  the heading query fails.
+- [x] 1.9 Run `pnpm test` and quote the failing lines (one per new or extended test file: "Failed to resolve
   import" for `./baskets` and `./basket`, missing exports of `./client`, red assertions in `config.test.ts`,
   `App.test.tsx`, `ProductCard.test.tsx`, `BasketPage.test.tsx`; add-catalog's own tests stay green). Verify:
   the quoted red output is in the transcript before any task in group 2 starts.
