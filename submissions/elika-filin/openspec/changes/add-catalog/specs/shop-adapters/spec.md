@@ -52,7 +52,7 @@ trimmed `categoryName`, `unit` = trimmed `unit`, `inStock` = `!isComingSoon`, `d
 with whitespace runs collapsed to one space and, when longer than 300 characters, cut at the last space before
 position 300 and suffixed with `…`. An item that lacks a required field (`id`, `name`, numeric `price`, `imageUrl`,
 `unit`, `categoryName`, string `description`, boolean `isComingSoon`) SHALL be skipped, like a Tilda card without an
-integer price; a response whose items are all malformed is the `"osio: no products"` failure.
+integer price or without an image (`data-original`, else `src`); a response whose items are all malformed is the `"osio: no products"` failure.
 
 #### Scenario: Fixture response yields twelve products in response order
 - **WHEN** the adapter's fetch resolves with status 200 and the body of `apps/api/fixtures/osio.json` (12 items)

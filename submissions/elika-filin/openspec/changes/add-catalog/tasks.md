@@ -131,14 +131,14 @@ the 2026-10-04 captures by `make-fixtures.py` beside them (provenance only) — 
 
 ## 8. Reality check — OSIO tenant header (spec updated after the first live smoke run)
 
-- [ ] 8.1 `apps/api/src/shops/osio.test.ts` — add the test "Request carries the tenant header": a stub fetch `vi.fn()` that
+- [x] 8.1 `apps/api/src/shops/osio.test.ts` — add the test "Request carries the tenant header": a stub fetch `vi.fn()` that
   records `(url, init)` and resolves with the fixture; assert it was called once with the products URL and
   `init.headers` equal to `{ "Application-Instance": "3fc23022-4cf1-4d8b-a24c-c50e2651d4e0" }`. Run `pnpm test` and quote
   the red assertion (the adapter currently calls fetch with the URL only).
-- [ ] 8.2 `apps/api/src/shops/types.ts`: `FetchLike` accepts an optional second argument `init?: { headers?: Record<string, string> }`;
+- [x] 8.2 `apps/api/src/shops/types.ts`: `FetchLike` accepts an optional second argument `init?: { headers?: Record<string, string> }`;
   `apps/api/src/shops/osio.ts`: send the header; `apps/api/src/server.ts`: pass `init` through to `fetch` together with the
   timeout signal. Verify: the 8.1 test and the whole osio suite pass; `pnpm typecheck` exits 0.
-- [ ] 8.3 Run `pnpm check` and quote its summary lines (Tests … passed, spec:check ok — …).
+- [x] 8.3 Run `pnpm check` and quote its summary lines (Tests … passed, spec:check ok — …).
 
 ## 9. Review findings (maker ≠ checker — docs/reviews/2026-10-04-add-catalog-*.md)
 
@@ -148,22 +148,38 @@ malformed osio items. All are now specified above (scenarios "Shop down and its 
 snapshot read is retried", "Concurrent cold loads call each adapter once", "Malformed item is skipped",
 "Unavailable shop", and the accessible link name in "Two shops with products").
 
-- [ ] 9.1 Scenario tests first: add the five new tests (`products.test.ts` unreadable snapshot on an empty temp dir →
+- [x] 9.1 Scenario tests first: add the five new tests (`products.test.ts` unreadable snapshot on an empty temp dir →
   `status: "unavailable"`; `snapshot.test.ts` failed read retried on a temp dir; `catalog.test.ts` concurrent cold
   loads with adapters resolving after `await Promise.resolve()`; `osio.test.ts` malformed item skipped;
   `CatalogPage.test.tsx` unavailable shop) and update "Two shops with products" to query the links by their new
   accessible names. Run `pnpm test` and quote the red lines.
-- [ ] 9.2 `packages/shared/src/index.ts`: `ShopStatusSchema` gains `"unavailable"`. `apps/api/src/lib/snapshot.ts`:
+- [x] 9.2 `packages/shared/src/index.ts`: `ShopStatusSchema` gains `"unavailable"`. `apps/api/src/lib/snapshot.ts`:
   drop a rejected promise from `pending`. `apps/api/src/lib/catalog.ts`: wrap the snapshot read in the fallback path
   (and in snapshot mode) so a failure yields `status: "unavailable"`, `count: 0`; share one in-flight adapter
   promise per shop on a cold cache. `apps/api/src/shops/osio.ts`: keep skipping malformed items (now specified).
   Verify: the API tests of 9.1 pass; `pnpm typecheck` exits 0.
-- [ ] 9.3 `apps/web/src/components/ProductCard.tsx`: `aria-label={`У магазині: ${product.name}`}` on the link;
+- [x] 9.3 `apps/web/src/components/ProductCard.tsx`: `aria-label={`У магазині: ${product.name}`}` on the link;
   `ShopSection.tsx`: the "Магазин тимчасово недоступний" note (role="status", no `<ul>`) for `status: "unavailable"`.
   Add `ProductCard.test.tsx` (price format "665 ₴", alt, accessible link name) and `ShopSection.test.tsx` (fallback
   note shown only for `snapshot-fallback`, unavailable note only for `unavailable`) beside the components
   (`.claude/rules/web.md`). Verify: the web tests of 9.1 and the two new component tests pass.
-- [ ] 9.4 Run `pnpm check` and quote its summary lines (Tests … passed, spec:check ok — …).
+- [x] 9.4 Run `pnpm check` and quote its summary lines (Tests … passed, spec:check ok — …).
+
+## 10. Review round 2 (docs/reviews/2026-10-04-add-catalog-code-reviewer.md)
+
+Accepted: card without an image is skipped (spec text updated), `cache.test.ts` beside `cache.ts` (AGENTS.md rule),
+empty `SNAPSHOT_DIR` fails fast like `DATA_SOURCE`, a `CatalogShop` whose adapter key differs from `snapshotKey` throws at
+construction, a shop with zero products shows "Немає товарів" (scenario "Shop with no products"). The three
+session-notes findings were fixed by hand.
+
+- [ ] 10.1 Scenario tests first: `CatalogPage.test.tsx` "Shop with no products"; `cache.test.ts` (set at `now = 0`, hit at
+  `299999`, miss at `300000`, miss for an unknown key); `config.test.ts` `SNAPSHOT_DIR: ""` throws
+  `Error('SNAPSHOT_DIR must be a non-empty path')`; `catalog.test.ts` mismatched keys throw `Error('catalog shop key mismatch: karashynyard vs osio')`;
+  `karashynyard.test.ts` a card without `data-original`/`src` is skipped (fixture string built in the test from one real
+  card with the image attribute removed → 4 products from the 5-card fixture variant). Run `pnpm test`, quote the red lines.
+- [ ] 10.2 Implement: `karashynyard.ts` (image fallback `data-original` → `src`, else skip), `config.ts`, `catalog.ts` guard,
+  `ShopSection.tsx` empty note. Verify: 10.1 tests pass, `pnpm typecheck` exits 0.
+- [ ] 10.3 Run `pnpm check` and quote its summary lines (Tests … passed, spec:check ok — …).
 
 ### Human smoke run (outside the loop, after 7.2)
 

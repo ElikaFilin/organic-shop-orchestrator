@@ -52,7 +52,9 @@ Review request: change "${change}" at ${changeDir}. Today is ${new Date().toISOS
 
 const stamp = new Date().toISOString().slice(0, 10);
 mkdirSync(join(root, "docs", "reviews"), { recursive: true });
-const outFile = join(root, "docs", "reviews", `${stamp}-${change}-${agentName}.md`);
+const reviewsDir = join(root, "docs", "reviews");
+const existing = readdirSync(reviewsDir).filter((f) => f.startsWith(`${stamp}-${change}-${agentName}`)).length;
+const outFile = join(reviewsDir, `${stamp}-${change}-${agentName}${existing ? `-round${existing + 1}` : ""}.md`);
 
 const args = [
   "-p", prompt,

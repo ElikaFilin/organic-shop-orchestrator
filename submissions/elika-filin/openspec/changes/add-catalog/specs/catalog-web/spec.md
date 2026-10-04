@@ -35,7 +35,8 @@ While `getProducts()` is pending the page SHALL render an element with `role="st
 `status` is `"snapshot-fallback"` SHALL show the note "Показано збережену копію" with `role="status"` inside its
 section; shops with `status` `"live"` or `"snapshot"` (the chosen snapshot mode) SHALL show no note, so a
 response in which every shop is `live` or `snapshot` renders no `role="status"` element at all. A shop section whose `status` is `"unavailable"` SHALL show the note
-"Магазин тимчасово недоступний" with `role="status"` and no list.
+"Магазин тимчасово недоступний" with `role="status"` and no list; a section with `status` `"live"` or `"snapshot"` and zero
+products SHALL show "Немає товарів" with `role="status"` and no list.
 
 #### Scenario: Loading state
 - **WHEN** `getProducts()` returns a promise that has not settled and route `/` is rendered
@@ -63,6 +64,11 @@ response in which every shop is `live` or `snapshot` renders no `role="status"` 
   and route `/` is rendered
 - **THEN** the section under "Карашин Яр" contains an element with `role="status"` and text "Магазин тимчасово недоступний"
   and no list, and the section under "OSIO organic" has a list with 1 item
+
+#### Scenario: Shop with no products
+- **WHEN** `getProducts()` resolves with `{ source: "snapshot", shops: [ { key: "karashynyard", name: "Карашин Яр", url: "https://karashynyard.com.ua/#rec638772397", status: "snapshot", count: 0 }, { key: "osio", name: "OSIO organic", url: "https://osio-organic.com.ua/", status: "snapshot", count: 1 } ], products: [ <osio:6abcf192b7db2532803d266d "Капуста кольрабі, органічна осіння" 195> ] }`
+  and route `/` is rendered
+- **THEN** the section under "Карашин Яр" contains an element with `role="status"` and text "Немає товарів" and no list
 
 ### Requirement: API client
 All server calls SHALL go through `src/api/client.ts`: `getProducts()` requests `GET /api/products`,
