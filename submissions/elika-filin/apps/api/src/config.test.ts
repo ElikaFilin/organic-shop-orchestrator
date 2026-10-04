@@ -1,7 +1,9 @@
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { expect, test } from "vitest";
-import { loadConfig } from "./config";
+import { mkdtempSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { loadConfig, loadDotEnv } from "./config";
 
 test("Config reads DATA_SOURCE", () => {
   expect(loadConfig({}).dataSource).toBe("live");
@@ -38,4 +40,12 @@ test("Config reads ADMIN_TOKEN", () => {
   expect(loadConfig({ ADMIN_TOKEN: "secret-token" }).adminToken).toBe("secret-token");
   // A blank token is "unset": the storefront runs without an admin instead of failing at startup.
   expect(loadConfig({ ADMIN_TOKEN: "   " }).adminToken).toBeUndefined();
+});
+
+test("loadDotEnv reads ADMIN_TOKEN from a .env file and ignores a missing file", () => {
+  const dir = mkdtempSync(resolve(tmpdir(), "organic-dotenv-"));
+  expect(loadDotEnv(resolve(dir, ".env"))).toBe(false);
+  writeFileSync(resolve(dir, ".env"), "# comment\nADMIN_TOKEN=from-dotenv-test\nORGANIC_UNUSED=1\n");
+  expect(loadDotEnv(resolve(dir, ".env"))).toBe(true);
+  expect(loadConfig().adminToken).toBe("from-dotenv-test");
 });

@@ -14,7 +14,7 @@ Capstone курсу **fwdays · Crash Course: Agentic Engineering** (верес�
 ```bash
 cd submissions/elika-filin
 pnpm install
-cp .env.example .env        # ADMIN_TOKEN — будь-який рядок; CONTEXT7_API_KEY — лише для MCP у Claude Code
+cp .env.example .env        # ADMIN_TOKEN — будь-який рядок (API читає .env сам при старті); CONTEXT7_API_KEY — лише для MCP
 pnpm dev                    # api → http://localhost:4000 · web → http://localhost:5173
 ```
 

@@ -1,5 +1,6 @@
 // The ONLY file in apps/** allowed to touch process.env (enforced by .claude/hooks/protect-env.mjs).
 // Everything else receives configuration as plain values, so tests never depend on the environment.
+import { existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { DataSourceSchema, type DataSource } from "@organic/shared";
 
@@ -15,6 +16,20 @@ export interface AppConfig {
 const DEFAULT_SNAPSHOT_DIR = fileURLToPath(new URL("../../../data/shops", import.meta.url));
 /** Runtime JSON stores live in <repo>/.data (git-ignored); DATA_DIR points them elsewhere. */
 const DEFAULT_DATA_DIR = fileURLToPath(new URL("../../../.data", import.meta.url));
+
+/** `<repo>/.env` — copied from .env.example by a human; the agent never reads or edits it (hook + deny rule). */
+const DEFAULT_DOTENV = fileURLToPath(new URL("../../../.env", import.meta.url));
+
+/**
+ * Loads KEY=value lines from the submission's `.env` into process.env with Node's built-in parser
+ * (`process.loadEnvFile`, Node >= 20.12). Variables already set in the environment win, so
+ * `ADMIN_TOKEN=x pnpm dev` still overrides the file. A missing file is a no-op and returns false.
+ */
+export function loadDotEnv(file: string = DEFAULT_DOTENV): boolean {
+  if (!existsSync(file)) return false;
+  process.loadEnvFile(file);
+  return true;
+}
 
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
   const rawDataSource = env.DATA_SOURCE ?? "live";
