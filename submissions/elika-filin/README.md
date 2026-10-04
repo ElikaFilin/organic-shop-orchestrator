@@ -22,6 +22,10 @@ pnpm dev                    # api → http://localhost:4000 · web → http://lo
 - `/basket` — кошик (анонімна httpOnly-кука `basket_id`, дані в `.data/baskets.json`);
 - `/admin` — вхід за `ADMIN_TOKEN`, перемикач джерела даних, чекбокси видимості для **всіх** товарів кожного магазину.
 
+Стан застосунку — `.data/` — **закомічений**: `admin-settings.json` (джерело даних і видимість, які бачить уся команда після
+`git pull`) і `baskets.json` (у репозиторії порожній; кошики з'являються локально за кукою). Змінили налаштування в адмінці —
+закомітьте `.data/admin-settings.json`, щоб колеги отримали той самий каталог.
+
 Один гейт на все:
 
 ```bash
@@ -40,6 +44,7 @@ pnpm check                  # typecheck + lint + vitest (api · web · shared) +
 
 ```
 apps/api        Hono на Node — src/routes (тонкі хендлери) · src/lib (чиста логіка + тести поруч) · src/shops (адаптери) · fixtures
+.data           admin-settings.json (спільні налаштування адмінки) · baskets.json (кошики за кукою; у git — порожній)
 apps/web        Vite + React 19 + React Router — src/pages · src/components · src/api/client.ts (усі запити)
 packages/shared zod-схеми і типи, спільні для обох застосунків
 data/shops      знімок 10 + 10 товарів, перевірений незалежним агентом (кожне фото і сторінка — curl 200)
