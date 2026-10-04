@@ -1,5 +1,5 @@
 import type { BasketResponse, CatalogResponse, Product } from "@organic/shared";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { createMemoryRouter, RouterProvider } from "react-router";
 import { beforeEach, expect, test, vi } from "vitest";
 import { getBasket, getProducts } from "./api/client";
@@ -83,6 +83,12 @@ const twoLineBasket: BasketResponse = {
   totals: { count: 3, sum: 1525 },
 };
 
+const emptyBasket: BasketResponse = {
+  id: "0f3c9d6e-7a1b-4c2d-9e8f-123456789abc",
+  items: [],
+  totals: { count: 0, sum: 0 },
+};
+
 beforeEach(() => {
   vi.resetAllMocks();
   vi.mocked(getProducts).mockResolvedValue(twoShopsResponse);
@@ -101,4 +107,29 @@ test("Header link counts the lines on mount", async () => {
 
   expect(await screen.findByRole("link", { name: "Кошик (3)" })).toHaveAttribute("href", "/basket");
   expect(getBasket).toHaveBeenCalledTimes(1);
+});
+
+test("Header navigation on the catalog page", async () => {
+  vi.mocked(getBasket).mockResolvedValue(emptyBasket);
+
+  /** The three links, in order, with their targets — the same on every route. */
+  async function expectNavigation() {
+    const nav = await screen.findByRole("navigation");
+    await within(nav).findByRole("link", { name: "Кошик (0)" });
+    const links = within(nav).getAllByRole("link");
+    expect(links).toHaveLength(3);
+    expect(links[0]).toHaveAccessibleName("Каталог");
+    expect(links[0]).toHaveAttribute("href", "/");
+    expect(links[1]).toHaveAccessibleName("Кошик (0)");
+    expect(links[1]).toHaveAttribute("href", "/basket");
+    expect(links[2]).toHaveAccessibleName("Адмін");
+    expect(links[2]).toHaveAttribute("href", "/admin");
+  }
+
+  const catalog = render(<RouterProvider router={createMemoryRouter(routes, { initialEntries: ["/"] })} />);
+  await expectNavigation();
+  catalog.unmount();
+
+  render(<RouterProvider router={createMemoryRouter(routes, { initialEntries: ["/basket"] })} />);
+  await expectNavigation();
 });

@@ -32,3 +32,10 @@ test("Empty SNAPSHOT_DIR fails fast", () => {
   expect(loadConfig({ SNAPSHOT_DIR: "/tmp/shops" }).snapshotDir).toBe("/tmp/shops");
   expect(loadConfig({}).snapshotDir).toMatch(/data[/\\]shops$/);
 });
+
+test("Config reads ADMIN_TOKEN", () => {
+  expect(loadConfig({}).adminToken).toBeUndefined();
+  expect(loadConfig({ ADMIN_TOKEN: "secret-token" }).adminToken).toBe("secret-token");
+  // A blank token is "unset": the storefront runs without an admin instead of failing at startup.
+  expect(loadConfig({ ADMIN_TOKEN: "   " }).adminToken).toBeUndefined();
+});

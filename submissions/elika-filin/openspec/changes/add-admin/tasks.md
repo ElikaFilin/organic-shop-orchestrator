@@ -12,7 +12,7 @@ needs `pnpm dev`, `curl`, a browser or `.env`.
 
 ## 1. Scenario tests first (red run)
 
-- [ ] 1.1 Precondition (read-only, Grep tool): `add-basket` is on disk — `export function createBasketStore` in
+- [x] 1.1 Precondition (read-only, Grep tool): `add-basket` is on disk — `export function createBasketStore` in
   `apps/api/src/lib/store/baskets.ts`, `dataDir` in `apps/api/src/config.ts`, `basketStore` in
   `apps/api/src/app.ts`, `export const ProductIdSchema` in `packages/shared/src/index.ts`, `getBasket` in
   `apps/web/src/api/client.ts`, `BasketProvider` in `apps/web/src/basket/BasketContext.tsx`,
@@ -20,12 +20,12 @@ needs `pnpm dev`, `curl`, a browser or `.env`.
   `apps/web/src/api/client.ts` and the files `apps/api/src/lib/basket.test.ts` and
   `apps/web/src/components/BasketLine.test.tsx`. Verify: all ten patterns match; if any is missing, stop and
   report that this change cannot start before `add-basket` (including its group 8) is implemented.
-- [ ] 1.2 `apps/api/src/config.test.ts` — add the test "Config reads ADMIN_TOKEN" next to the existing config
+- [x] 1.2 `apps/api/src/config.test.ts` — add the test "Config reads ADMIN_TOKEN" next to the existing config
   tests: `expect(loadConfig({}).adminToken).toBeUndefined()`,
   `expect(loadConfig({ ADMIN_TOKEN: "secret-token" }).adminToken).toBe("secret-token")`,
   `expect(loadConfig({ ADMIN_TOKEN: "   " }).adminToken).toBeUndefined()`. Verify: `pnpm test apps/api/src/config`
   reports it failing on `"secret-token"` vs `undefined`.
-- [ ] 1.3 `apps/api/src/lib/store/admin-settings.test.ts` — four tests, one per scenario: "Missing file reads as
+- [x] 1.3 `apps/api/src/lib/store/admin-settings.test.ts` — four tests, one per scenario: "Missing file reads as
   defaults", "Reads persisted settings", "Update writes atomically", "Invalid file content is an error". Each
   test creates `mkdtempSync(join(tmpdir(), "admin-settings-"))`, builds
   `createAdminSettingsStore(join(dir, "admin-settings.json"), { dataSource: "live", visibility: { karashynyard: null, osio: null } })`
@@ -34,7 +34,7 @@ needs `pnpm dev`, `curl`, a browser or `.env`.
   assertions use `readdirSync(dir)`, `JSON.parse(readFileSync(..., "utf8"))` and, for the invalid file,
   `await expect(store.read()).rejects.toBeInstanceOf(Error)` plus `readFileSync` equal to `{"dataSource":"foo"}`.
   Verify: the file imports `./admin-settings`, which does not exist yet.
-- [ ] 1.4 `apps/api/src/lib/catalog.test.ts` — add two tests to the `selectVisibleProducts` describe:
+- [x] 1.4 `apps/api/src/lib/catalog.test.ts` — add two tests to the `selectVisibleProducts` describe:
   "Selection serves the chosen ids in upstream order" (`selectVisibleProducts([{ key: "karashynyard", products: karashynyardSnapshot }, { key: "osio", products: osioSnapshot.slice(0, 3) }], { karashynyard: ["karashynyard:1743423686258", "karashynyard:1498486363994"], osio: null })`
   → `map((p) => p.id)` equals the 5 ids in the scenario's order and `visible[0]?.price` is 665,
   `visible[1]?.price` 480) and "Ids missing upstream are ignored and an empty list hides the shop"
@@ -42,7 +42,7 @@ needs `pnpm dev`, `curl`, a browser or `.env`.
   id `karashynyard:1498486363994`, price 665). The existing "Selection keeps the first ten of each shop in
   order" test is untouched (its one-argument call stays valid). Verify: `pnpm test apps/api/src/lib/catalog`
   reports exactly these two tests failing (13 ids returned instead of 5 / 1).
-- [ ] 1.5 `apps/api/src/routes/products-visibility.test.ts` (a new file, so `add-catalog`'s
+- [x] 1.5 `apps/api/src/routes/products-visibility.test.ts` (a new file, so `add-catalog`'s
   `products.test.ts` stays green in the red run) — three tests: "Catalog honours the admin's visibility",
   "A visibility change is served without restart" (same app, the store's `update` between the two requests)
   and "Persisted data source overrides DATA_SOURCE" (`loadConfig({}).dataSource` as the default,
@@ -53,7 +53,7 @@ needs `pnpm dev`, `curl`, a browser or `.env`.
   `createCatalogService({ source, shops, snapshots: createSnapshotSource(<repo>/data/shops), cache, now: () => 0, settings: store })`,
   `createApp({ catalog, basketStore: <temp basket store>, settingsStore: store, adminToken: undefined })`.
   Verify: the file imports `../lib/store/admin-settings`, which does not exist yet.
-- [ ] 1.6 `apps/api/src/routes/admin.test.ts` — twenty-two tests, one per route scenario, in `describe` blocks per
+- [x] 1.6 `apps/api/src/routes/admin.test.ts` — twenty-two tests, one per route scenario, in `describe` blocks per
   requirement: admin-auth — "Login with the right token sets the session cookie", "Login with a wrong token",
   "Login without a configured token", "Login body without a token is rejected", "Logout clears the cookie",
   "Session reflects the cookie", "Missing cookie is unauthorized", "Tampered cookie is unauthorized", "Valid
@@ -72,7 +72,7 @@ needs `pnpm dev`, `curl`, a browser or `.env`.
   read with `res.headers.get("set-cookie")`, its absence with `toBeNull()`; 204 bodies with `await res.text()`
   equal to `""`; expected `product` objects are `toEqual` against the snapshot products read through
   `createSnapshotSource`. Verify: the file imports `./admin` and `../lib/store/admin-settings`, both missing yet.
-- [ ] 1.7 `apps/api/src/lib/admin-auth.test.ts` and `apps/api/src/lib/admin.test.ts` — the unit tests beside the two
+- [x] 1.7 `apps/api/src/lib/admin-auth.test.ts` and `apps/api/src/lib/admin.test.ts` — the unit tests beside the two
   `src/lib` modules (AGENTS.md: "a Vitest test beside it"; design.md D5, D6, D12), asserting the scenario values
   directly on the functions. `admin-auth.test.ts`, three tests: "Unconfigured admin cannot log in"
   (`createAdminAuth({ adminToken: undefined })` → `secret` is `undefined` and `login("secret-token")` equals
@@ -108,7 +108,7 @@ needs `pnpm dev`, `curl`, a browser or `.env`.
   (`updateSettings({ dataSource: "snapshot" })` resolves `{ dataSource: "snapshot", visibility: { karashynyard: null, osio: null } }`,
   `JSON.parse(readFileSync(<dir>/admin-settings.json, "utf8")).dataSource` is `"snapshot"` and `setSource` was called
   once with `"snapshot"`). Verify: the files import `./admin-auth` and `./admin`, which do not exist yet.
-- [ ] 1.8 `apps/web/src/api/client.test.ts` — add three tests next to the catalog and basket client tests: "Admin
+- [x] 1.8 `apps/web/src/api/client.test.ts` — add three tests next to the catalog and basket client tests: "Admin
   requests send method, path and body" (one `mockResolvedValueOnce` per call, `new Response(null, { status: 204 })`
   for the two 204 answers, `expect(fetchMock).toHaveBeenLastCalledWith(path, expect.objectContaining({ method, credentials: "same-origin", ... }))`
   and `body: undefined` where the scenario says so; the `setProductVisibility` call asserts the literal path
@@ -120,7 +120,7 @@ needs `pnpm dev`, `curl`, a browser or `.env`.
   `rejects.toMatchObject({ status: 401 })`, likewise 503 and the `GET /api/admin/settings failed: 401` case).
   Verify: the file imports `getAdminSession`, `adminLogin`, `adminLogout`, `getAdminSettings`, `updateSettings`,
   `getAdminProducts`, `setProductVisibility` from `./client` — none exported yet, so the run fails on the missing exports.
-- [ ] 1.9 `apps/web/src/App.test.tsx` — add "Header navigation on the catalog page": `vi.mock("./api/client")`,
+- [x] 1.9 `apps/web/src/App.test.tsx` — add "Header navigation on the catalog page": `vi.mock("./api/client")`,
   `getProducts` resolves with the two-shops response, `getBasket` with the empty basket; render the routes at
   `/`, then `within(await screen.findByRole("navigation")).getAllByRole("link")` has length 3 with names
   "Каталог" / "Кошик (0)" / "Адмін" and hrefs `/` / `/basket` / `/admin` in order; render again at `/basket`
@@ -129,7 +129,7 @@ needs `pnpm dev`, `curl`, a browser or `.env`.
   `/:root\s*\{[^}]*color-scheme:\s*light;?[^}]*\}/`, and `../index.html` matches `/<body[^>]*class="[^"]*\bbg-white\b[^"]*"/`
   and `/<body[^>]*class="[^"]*\btext-stone-900\b[^"]*"/`. Verify: the nav test fails (1 link, no "Каталог")
   and both theme assertions fail.
-- [ ] 1.10 `apps/web/src/pages/AdminPage.test.tsx` — fourteen scenario tests: "Loading state", "Not authenticated
+- [x] 1.10 `apps/web/src/pages/AdminPage.test.tsx` — fourteen scenario tests: "Loading state", "Not authenticated
   shows the login form", "Authenticated shows the panel", "Wrong token", "Admin not configured", "Login failure other
   than 401/503 and alert reset", "Successful login opens the panel", "Radio switches the data source", "Source switch
   failure keeps the radio", "Unticking hides a product", "Ticking shows a product", "Save failure keeps the checkbox",
@@ -152,7 +152,7 @@ needs `pnpm dev`, `curl`, a browser or `.env`.
   `fireEvent.change(input, { target: { value } })`, `fireEvent.click` on buttons, radios and checkboxes,
   `findBy…` / `waitFor` after every mutation; call counts with `toHaveBeenCalledTimes`. Verify: route `/admin`
   renders nothing yet — every test fails on the missing heading or status element.
-- [ ] 1.11 `apps/web/src/components/AdminLoginForm.test.tsx` and `apps/web/src/components/AdminShopSection.test.tsx` —
+- [x] 1.11 `apps/web/src/components/AdminLoginForm.test.tsx` and `apps/web/src/components/AdminShopSection.test.tsx` —
   the Testing Library tests beside the two components (`.claude/rules/web.md`; design.md D10, D12), rendered directly
   with `render(<Component … />)` and `vi.fn()` callbacks — no router, no client mock. `AdminLoginForm.test.tsx`, three
   tests: "Submit passes the typed token" (`onSubmit` resolves `undefined`; a level-2 heading "Вхід для адміністратора"
@@ -176,7 +176,7 @@ needs `pnpm dev`, `curl`, a browser or `.env`.
   "Гречаний чай з жасмином 100 г (99 чашок)" → `onToggle` was called with `("karashynyard:1743423686258", true)`; click
   "Філе індички, 1 кг" → `("karashynyard:1498486363994", false)`; two calls in total). Verify: the files import
   `./AdminLoginForm` and `./AdminShopSection`, which do not exist yet.
-- [ ] 1.12 Run `pnpm test` and quote the failing lines (one per new or extended test file: "Failed to resolve
+- [x] 1.12 Run `pnpm test` and quote the failing lines (one per new or extended test file: "Failed to resolve
   import" for `./admin-settings`, `../lib/store/admin-settings`, `./admin` (the route and the lib test), `./admin-auth`,
   `./AdminLoginForm` and `./AdminShopSection`; missing exports of `./client`; red assertions in `config.test.ts`,
   `catalog.test.ts` (two tests), `App.test.tsx`, `theme.test.ts`, `AdminPage.test.tsx`; `add-catalog`'s and

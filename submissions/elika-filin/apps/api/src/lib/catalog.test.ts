@@ -101,6 +101,44 @@ describe("selectVisibleProducts", () => {
       "osio:6a82acaa52fcb3f74e97821d",
     ]);
   });
+
+  test("Selection serves the chosen ids in upstream order", () => {
+    const perShop: ShopProducts[] = [
+      { key: "karashynyard", products: karashynyardSnapshot },
+      { key: "osio", products: osioSnapshot.slice(0, 3) },
+    ];
+
+    const visible = selectVisibleProducts(perShop, {
+      karashynyard: ["karashynyard:1743423686258", "karashynyard:1498486363994"],
+      osio: null,
+    });
+
+    // The chosen karashynyard ids come back in upstream order, not in the order the admin listed them.
+    expect(visible.map((p) => p.id)).toEqual([
+      "karashynyard:1498486363994",
+      "karashynyard:1743423686258",
+      "osio:6abcf192b7db2532803d266d",
+      "osio:6a31801b6f67d681cfdb7e21",
+      "osio:6a82acaa52fcb3f74e97821d",
+    ]);
+    expect(visible[0]?.price).toBe(665);
+    expect(visible[1]?.price).toBe(480);
+  });
+
+  test("Ids missing upstream are ignored and an empty list hides the shop", () => {
+    const perShop: ShopProducts[] = [
+      { key: "karashynyard", products: karashynyardSnapshot },
+      { key: "osio", products: osioSnapshot.slice(0, 3) },
+    ];
+
+    const visible = selectVisibleProducts(perShop, {
+      karashynyard: ["karashynyard:1498486363994", "karashynyard:0000000000000"],
+      osio: [],
+    });
+
+    expect(visible).toHaveLength(1);
+    expect(visible[0]).toMatchObject({ id: "karashynyard:1498486363994", price: 665 });
+  });
 });
 
 describe("createCatalogService", () => {
