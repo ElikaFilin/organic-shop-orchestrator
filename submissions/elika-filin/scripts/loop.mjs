@@ -49,7 +49,7 @@ const tasks = () => {
   const text = readFileSync(tasksFile, "utf8");
   const done = (text.match(/^\s*- \[x\]/gim) ?? []).length;
   const open = text.split("\n").filter((l) => /^\s*- \[ \]/.test(l)).map((l) => l.trim());
-  return { done, open, total: done + open };
+  return { done, open, total: done + open.length };
 };
 
 const gate = () => {

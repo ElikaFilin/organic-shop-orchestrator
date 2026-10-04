@@ -1,3 +1,6 @@
+import { copyFile, mkdtemp } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { ProductSchema } from "@organic/shared";
 import { expect, test } from "vitest";
@@ -26,4 +29,17 @@ test("Snapshot product normalizes to a Product", async () => {
     inStock: true,
   });
   expect(ProductSchema.safeParse(products[0]).success).toBe(true);
+});
+
+test("A failed snapshot read is retried", async () => {
+  const dir = await mkdtemp(join(tmpdir(), "organic-snapshots-"));
+  const source = createSnapshotSource(dir);
+
+  await expect(source.read("osio")).rejects.toBeInstanceOf(Error);
+
+  await copyFile(join(snapshotDir, "osio.json"), join(dir, "osio.json"));
+  const products = await source.read("osio");
+
+  expect(products).toHaveLength(10);
+  expect(products[0]?.id).toBe("osio:6abcf192b7db2532803d266d");
 });

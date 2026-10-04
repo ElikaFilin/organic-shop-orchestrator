@@ -137,6 +137,44 @@ describe("createCatalogService", () => {
     expect(osio).toHaveBeenCalledTimes(2);
   });
 
+  test("Concurrent cold loads call each adapter once", async () => {
+    const { service, karashynyard, osio } = liveService(() => 0);
+    // Both adapters resolve after a tick, so the three loads overlap on a cold cache.
+    karashynyard.mockImplementation(async () => {
+      await Promise.resolve();
+      return { ok: true, products: karashynyardSnapshot };
+    });
+    osio.mockImplementation(async () => {
+      await Promise.resolve();
+      return { ok: true, products: osioSnapshot };
+    });
+
+    const results = await Promise.all([service.load(), service.load(), service.load()]);
+
+    expect(karashynyard).toHaveBeenCalledTimes(1);
+    expect(osio).toHaveBeenCalledTimes(1);
+    for (const result of results) expect(result.products).toHaveLength(20);
+  });
+
+  test("Mismatched shop keys throw at construction", () => {
+    const build = () =>
+      createCatalogService({
+        source: "live",
+        shops: [
+          {
+            adapter: { shop: KARASHYNYARD_SHOP, fetchProducts: vi.fn<ShopAdapter["fetchProducts"]>() },
+            snapshotKey: "osio",
+          },
+        ],
+        snapshots,
+        cache: createTtlCache({ ttlMs: 300000, now: () => 0 }),
+        now: () => 0,
+      });
+
+    expect(build).toThrow(Error);
+    expect(build).toThrow(/^catalog shop key mismatch: karashynyard vs osio$/);
+  });
+
   test("Runtime switch to snapshot", async () => {
     const { service, karashynyard, osio } = liveService(() => 0);
     expect(service.getSource()).toBe("live");

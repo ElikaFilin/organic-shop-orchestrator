@@ -172,14 +172,14 @@ empty `SNAPSHOT_DIR` fails fast like `DATA_SOURCE`, a `CatalogShop` whose adapte
 construction, a shop with zero products shows "Немає товарів" (scenario "Shop with no products"). The three
 session-notes findings were fixed by hand.
 
-- [ ] 10.1 Scenario tests first: `CatalogPage.test.tsx` "Shop with no products"; `cache.test.ts` (set at `now = 0`, hit at
+- [x] 10.1 Scenario tests first: `CatalogPage.test.tsx` "Shop with no products"; `cache.test.ts` (set at `now = 0`, hit at
   `299999`, miss at `300000`, miss for an unknown key); `config.test.ts` `SNAPSHOT_DIR: ""` throws
   `Error('SNAPSHOT_DIR must be a non-empty path')`; `catalog.test.ts` mismatched keys throw `Error('catalog shop key mismatch: karashynyard vs osio')`;
   `karashynyard.test.ts` a card without `data-original`/`src` is skipped (fixture string built in the test from one real
   card with the image attribute removed → 4 products from the 5-card fixture variant). Run `pnpm test`, quote the red lines.
-- [ ] 10.2 Implement: `karashynyard.ts` (image fallback `data-original` → `src`, else skip), `config.ts`, `catalog.ts` guard,
+- [x] 10.2 Implement: `karashynyard.ts` (image fallback `data-original` → `src`, else skip), `config.ts`, `catalog.ts` guard,
   `ShopSection.tsx` empty note. Verify: 10.1 tests pass, `pnpm typecheck` exits 0.
-- [ ] 10.3 Run `pnpm check` and quote its summary lines (Tests … passed, spec:check ok — …).
+- [x] 10.3 Run `pnpm check` and quote its summary lines (Tests … passed, spec:check ok — …).
 
 ### Human smoke run (outside the loop, after 7.2)
 

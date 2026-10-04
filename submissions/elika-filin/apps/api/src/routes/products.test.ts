@@ -1,3 +1,6 @@
+import { mkdtemp } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import type { CatalogResponse, DataSource, Product } from "@organic/shared";
 import { describe, expect, test, vi } from "vitest";
@@ -54,7 +57,7 @@ const KARASHYNYARD_SHOP = {
 } as const;
 const OSIO_SHOP = { key: "osio", name: "OSIO organic", url: "https://osio-organic.com.ua/" } as const;
 
-function appWithFakeShops(source: DataSource) {
+function appWithFakeShops(source: DataSource, dir: string = snapshotDir) {
   const karashynyard = vi.fn<ShopAdapter["fetchProducts"]>();
   const osio = vi.fn<ShopAdapter["fetchProducts"]>();
   const catalog = createCatalogService({
@@ -63,7 +66,7 @@ function appWithFakeShops(source: DataSource) {
       { adapter: { shop: KARASHYNYARD_SHOP, fetchProducts: karashynyard }, snapshotKey: "karashynyard" },
       { adapter: { shop: OSIO_SHOP, fetchProducts: osio }, snapshotKey: "osio" },
     ],
-    snapshots: createSnapshotSource(snapshotDir),
+    snapshots: createSnapshotSource(dir),
     cache: createTtlCache({ ttlMs: 300000, now: () => 0 }),
     now: () => 0,
   });
@@ -149,6 +152,31 @@ describe("GET /api/products", () => {
     expect(body.shops[1]?.status).toBe("live");
     expect(body.products).toHaveLength(20);
     expect(body.products[0]).toMatchObject({ id: "karashynyard:1498486363994", price: 665 });
+  });
+
+  test("Shop down and its snapshot unreadable", async () => {
+    // An empty temp directory: karashynyard.json is missing, so the fallback read fails too.
+    const emptyDir = await mkdtemp(join(tmpdir(), "organic-snapshots-"));
+    const { app, karashynyard, osio } = appWithFakeShops("live", emptyDir);
+    karashynyard.mockResolvedValue({ ok: false, error: "karashynyard: HTTP 503" });
+    osio.mockResolvedValue({ ok: true, products: osioSnapshot });
+
+    const res = await app.request("/api/products");
+
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as CatalogResponse;
+    expect(body.source).toBe("live");
+    expect(body.shops[0]).toEqual({
+      key: "karashynyard",
+      name: "Карашин Яр",
+      url: "https://karashynyard.com.ua/#rec638772397",
+      status: "unavailable",
+      error: "karashynyard: HTTP 503",
+      count: 0,
+    });
+    expect(body.shops[1]).toMatchObject({ status: "live", count: 10 });
+    expect(body.products).toHaveLength(10);
+    expect(body.products[0]?.id).toBe("osio:6abcf192b7db2532803d266d");
   });
 });
 

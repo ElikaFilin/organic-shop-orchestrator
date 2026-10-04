@@ -62,6 +62,18 @@ describe("osio adapter", () => {
     });
   });
 
+  test("Request carries the tenant header", async () => {
+    const fetchMock = fetchStub(200, fixtureJson);
+
+    await createOsioAdapter({ fetch: fetchMock }).fetchProducts();
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock.mock.calls[0]?.[0]).toBe(OSIO_PRODUCTS_URL);
+    expect(fetchMock.mock.calls[0]?.[1]?.headers).toEqual({
+      "Application-Instance": "3fc23022-4cf1-4d8b-a24c-c50e2651d4e0",
+    });
+  });
+
   test("Coming-soon item is out of stock", async () => {
     expect(fixtureItems[11]).toMatchObject({ id: "6aa15f6d98ecadd65969cc45", price: 315 });
     const fetchMock = fetchStub(200, JSON.stringify([{ ...fixtureItems[11], isComingSoon: true }]));
@@ -75,6 +87,17 @@ describe("osio adapter", () => {
       price: 315,
       inStock: false,
     });
+  });
+
+  test("Malformed item is skipped", async () => {
+    const items = fixtureItems.map((item, index) => (index === 2 ? { ...item, description: null } : item));
+    const fetchMock = fetchStub(200, JSON.stringify(items));
+
+    const products = productsOf(await createOsioAdapter({ fetch: fetchMock }).fetchProducts());
+
+    expect(products).toHaveLength(11);
+    expect(products[2]?.id).toBe(`osio:${fixtureItems[3]?.id as string}`);
+    expect(products.map((p) => p.id)).not.toContain(`osio:${fixtureItems[2]?.id as string}`);
   });
 
   test("Non-JSON body is a failure", async () => {

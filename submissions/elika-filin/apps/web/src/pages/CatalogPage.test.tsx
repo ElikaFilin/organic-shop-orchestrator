@@ -118,10 +118,13 @@ describe("CatalogPage", () => {
     expect(screen.getAllByText("1 кг")).toHaveLength(2);
     expect(screen.getByText("Качан 350-450 г")).toBeInTheDocument();
 
-    const shopLinks = screen.getAllByRole("link", { name: "У магазині" });
-    expect(shopLinks).toHaveLength(3);
-    expect(shopLinks[0]).toHaveAttribute("href", "https://karashynyard.com.ua/#rec638772397");
-    expect(shopLinks[2]).toHaveAttribute("href", "https://osio-organic.com.ua/products/6abcf192b7db2532803d266d");
+    expect(screen.getByRole("link", { name: "У магазині: Філе індички, 1 кг" })).toHaveAttribute(
+      "href",
+      "https://karashynyard.com.ua/#rec638772397",
+    );
+    expect(
+      screen.getByRole("link", { name: "У магазині: Капуста кольрабі, органічна осіння" }),
+    ).toHaveAttribute("href", "https://osio-organic.com.ua/products/6abcf192b7db2532803d266d");
 
     expect(screen.queryByRole("status")).toBeNull();
   });
@@ -160,6 +163,45 @@ describe("CatalogPage", () => {
     expect(within(karashynyardSection).getByRole("status")).toHaveTextContent("Показано збережену копію");
     expect(within(osioSection).queryByRole("status")).toBeNull();
     expect(screen.getAllByRole("listitem")).toHaveLength(3);
+  });
+
+  test("Unavailable shop", async () => {
+    getProductsMock.mockResolvedValue(
+      twoShopsResponse({
+        shops: [
+          { ...karashynyardLive, status: "unavailable", error: "karashynyard: HTTP 503", count: 0 },
+          osioLive,
+        ],
+        products: [kolrabi],
+      }),
+    );
+
+    renderRoute();
+
+    const karashynyardSection = await screen.findByRole("region", { name: "Карашин Яр" });
+    const osioSection = screen.getByRole("region", { name: "OSIO organic" });
+    expect(within(karashynyardSection).getByRole("status")).toHaveTextContent("Магазин тимчасово недоступний");
+    expect(within(karashynyardSection).queryByRole("list")).toBeNull();
+    expect(within(within(osioSection).getByRole("list")).getAllByRole("listitem")).toHaveLength(1);
+  });
+
+  test("Shop with no products", async () => {
+    getProductsMock.mockResolvedValue(
+      twoShopsResponse({
+        source: "snapshot",
+        shops: [
+          { ...karashynyardLive, status: "snapshot", count: 0 },
+          { ...osioLive, status: "snapshot" },
+        ],
+        products: [kolrabi],
+      }),
+    );
+
+    renderRoute();
+
+    const karashynyardSection = await screen.findByRole("region", { name: "Карашин Яр" });
+    expect(within(karashynyardSection).getByRole("status")).toHaveTextContent("Немає товарів");
+    expect(within(karashynyardSection).queryByRole("list")).toBeNull();
   });
 
   test("Chosen snapshot mode shows no note", async () => {

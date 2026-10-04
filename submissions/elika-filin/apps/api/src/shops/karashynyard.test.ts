@@ -79,6 +79,39 @@ describe("karashynyard adapter", () => {
     expect(products.some((p) => p.name === "Домашня сметана, 0,5 л")).toBe(false);
   });
 
+  test("Card without an image is skipped", async () => {
+    // The real first card of the fixture (lid 1498486363994) with both image attributes removed. Its lid is
+    // then free, so the repeated-lid card of rec638793505 ("Домашня сметана, 0,5 л") takes it — still 4 products.
+    const firstCardImage =
+      '<img src="https://thb.tildacdn.net/tild3635-3935-4665-b364-633939613631/-/empty/___13.jpg" data-original="https://static.tildacdn.net/tild3635-3935-4665-b364-633939613631/___13.jpg"';
+    const withoutImage = fixtureHtml.replace(firstCardImage, "<img");
+    expect(withoutImage).not.toBe(fixtureHtml);
+
+    const products = productsOf(await createKarashynyardAdapter({ fetch: fetchStub(200, withoutImage) }).fetchProducts());
+
+    expect(products.map((p) => p.sourceId)).toEqual([
+      "1628604400123",
+      "1781040705497",
+      "1652947963962",
+      "1498486363994",
+    ]);
+    expect(products[3]).toMatchObject({ name: "Домашня сметана, 0,5 л", price: 270 });
+  });
+
+  test("Card without data-original falls back to src", async () => {
+    const withoutOriginal = fixtureHtml.replace(
+      ' data-original="https://static.tildacdn.net/tild3635-3935-4665-b364-633939613631/___13.jpg"',
+      "",
+    );
+
+    const products = productsOf(await createKarashynyardAdapter({ fetch: fetchStub(200, withoutOriginal) }).fetchProducts());
+
+    expect(products[0]).toMatchObject({
+      sourceId: "1498486363994",
+      imageUrl: "https://thb.tildacdn.net/tild3635-3935-4665-b364-633939613631/-/empty/___13.jpg",
+    });
+  });
+
   test("Page without store records is a failure", async () => {
     const fetchMock = fetchStub(200, "<html><body><p>Технічні роботи</p></body></html>");
 
