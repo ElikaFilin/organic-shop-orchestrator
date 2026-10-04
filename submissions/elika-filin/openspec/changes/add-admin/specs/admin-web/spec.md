@@ -103,6 +103,10 @@ an element with `role="status"`, and reload the product sections with a second `
 and snapshot lists differ). A rejection shows "Не вдалося зберегти" with `role="alert"` and leaves the radios
 as they were.
 
+A failed save SHALL clear an earlier "Збережено" (the two messages are never shown together); a save that succeeds
+but whose product reload fails SHALL keep "Збережено" and show "Не вдалося завантажити адмін-панель" instead of a
+save error.
+
 #### Scenario: Radio switches the data source
 - **WHEN** the panel is rendered as in "Authenticated shows the panel" (`dataSource: "live"`),
   `updateSettings` resolves with `{ dataSource: "snapshot", visibility: { karashynyard: null, osio: null } }`,
@@ -122,6 +126,18 @@ as they were.
   shows "Не вдалося зберегти"; the radio "Наживо" is still checked and "Знімок" is not; no element with
   `role="status"` is rendered; `getAdminProducts` was called once in total (no reload); the region
   "Карашин Яр" still shows the text "наживо"
+
+#### Scenario: Save failure clears the earlier success
+- **WHEN** the panel is open with `dataSource: "snapshot"`, "Наживо" is chosen and `updateSettings` resolves ("Збережено"
+  is shown), then "Знімок" is chosen and `updateSettings` rejects with `Error("PUT /api/admin/settings failed: 500")`
+- **THEN** "Не вдалося зберегти" is shown with `role="alert"`, no element with text "Збережено" remains, and the
+  "Наживо" radio is still checked
+
+#### Scenario: Reload failure after a successful save
+- **WHEN** the panel is open, "Знімок" is chosen, `updateSettings` resolves with `{ dataSource: "snapshot", visibility: { karashynyard: null, osio: null } }`
+  and the following `getAdminProducts()` rejects with `Error("GET /api/admin/products failed: 500")`
+- **THEN** "Збережено" is shown with `role="status"`, "Не вдалося завантажити адмін-панель" is shown with `role="alert"`,
+  no element with text "Не вдалося зберегти" exists, and the "Знімок" radio is checked
 
 ### Requirement: Product visibility checkboxes
 For each shop in response order the panel SHALL render a section (`<section aria-labelledby>`) with a

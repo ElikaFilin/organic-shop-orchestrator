@@ -58,3 +58,32 @@ change is served by the next `GET /api/products` without a restart.
   awaited and `GET /api/products` is requested again
 - **THEN** `shops[0].count` is 10, `products.length` is 20 and `products[9]` is
   `id: "karashynyard:1743423686258"`, `price: 480`
+
+#### Scenario: Corrupt settings file falls back to defaults
+- **WHEN** `.data/admin-settings.json` in the temp data dir holds the text `{"dataSource":"snapshot"}` (missing
+  `visibility`, so the store's schema rejects it), the catalog runs in `snapshot` mode over `data/shops/`, and
+  `GET /api/products` is requested
+- **THEN** the status is 200 with 20 products (the default first ten per shop) and the failure is reported once on
+  stderr naming the file; the storefront never answers 500 because the admin file is bad
+
+### Requirement: Product by id
+`GET /api/products/:id` SHALL answer 200 with the product whose `id` matches in the shop's **full** current list
+(`findProduct(id)` searches `loadAll()`, not the admin-filtered served list), or 404 with `{ error: "Product not found" }`.
+It needs no prior list request. A product hidden by the admin therefore still resolves — a basket line keeps its
+price when the admin unticks the product, and a direct link still works.
+
+#### Scenario: Known id
+- **WHEN** the catalog runs in `snapshot` mode over `data/shops/` on a fresh app and
+  `GET /api/products/osio:6abcf192b7db2532803d266d` is requested with no prior request to `GET /api/products`
+- **THEN** the status is 200 and the body equals `{ id: "osio:6abcf192b7db2532803d266d", shopKey: "osio", shopName: "OSIO organic", sourceId: "6abcf192b7db2532803d266d", name: "Капуста кольрабі, органічна осіння", price: 195, currency: "UAH", imageUrl: "https://fra1.digitaloceanspaces.com/arsubs-1/6abcf18f504a4d6030570003", productUrl: "https://osio-organic.com.ua/products/6abcf192b7db2532803d266d", description: "🥬 Кольрабі — соковита, хрустка капуста з ніжним солодкуватим смаком. Ось чим вона корисна: • Вітамін С підтримує імунну систему, потрібен для утворення колагену та допомагає засвоювати залізо з рослинної їжі. • Клітковина сприяє регулярному випорожненню, підтримує кишкову мікрофлору й допомагає…", category: "Овочі", unit: "Качан 350-450 г", inStock: true }`
+
+#### Scenario: Unknown id
+- **WHEN** `GET /api/products/osio:000000000000000000000000` is requested on the same snapshot-mode app
+- **THEN** the status is 404 and the body is `{ error: "Product not found" }`
+
+#### Scenario: Hidden product still resolves by id
+- **WHEN** the catalog runs in `snapshot` mode with visibility `{ karashynyard: ["karashynyard:1743423686258"], osio: null }`
+  and `GET /api/products/karashynyard:1498486363994` is requested
+- **THEN** the status is 200 and the body has `id: "karashynyard:1498486363994"` and `price: 665`, while
+  `GET /api/products` serves 11 products (1 + 10) without that id
+

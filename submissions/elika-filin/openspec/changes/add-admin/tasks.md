@@ -185,7 +185,7 @@ needs `pnpm dev`, `curl`, a browser or `.env`.
 
 ## 2. Shared contract
 
-- [ ] 2.1 `packages/shared/src/index.ts`: add `ShopVisibilitySchema`, `defaultVisibility()`, `AdminSettingsSchema`,
+- [x] 2.1 `packages/shared/src/index.ts`: add `ShopVisibilitySchema`, `defaultVisibility()`, `AdminSettingsSchema`,
   `UpdateAdminSettingsSchema` (strict), `AdminLoginSchema`, `AdminSessionSchema`, `SetProductVisibilitySchema`,
   `ProductVisibilityResponseSchema`, `AdminShopSummarySchema`, `AdminProductSchema`, `AdminProductsResponseSchema`
   and their `z.infer` types exactly as in design.md D1 (zod 4, no I/O, no framework import). Verify:
@@ -196,22 +196,22 @@ needs `pnpm dev`, `curl`, a browser or `.env`.
 
 ## 3. API — config and settings store
 
-- [ ] 3.1 `apps/api/src/config.ts`: `adminToken: string | undefined` from `ADMIN_TOKEN`, blank = `undefined`
+- [x] 3.1 `apps/api/src/config.ts`: `adminToken: string | undefined` from `ADMIN_TOKEN`, blank = `undefined`
   (design.md D2); still the only file that reads `process.env`. Verify: `pnpm test apps/api/src/config` passes
   all config tests and `pnpm hooks:selftest` stays green.
-- [ ] 3.2 `apps/api/src/lib/store/admin-settings.ts`: `createAdminSettingsStore(filePath, defaults)` with `read`
+- [x] 3.2 `apps/api/src/lib/store/admin-settings.ts`: `createAdminSettingsStore(filePath, defaults)` with `read`
   and `update` (design.md D3): `ENOENT` → a clone of the defaults, schema validation that throws on a bad file,
   one promise-chain queue, `mkdir` + `<file>.<uuid>.tmp` + `rename`, temp file unlinked on a failed write. No
   Hono import. Verify: the four tests of 1.3 pass (`pnpm test apps/api/src/lib/store/admin-settings`).
 
 ## 4. API — catalog visibility
 
-- [ ] 4.1 `apps/api/src/lib/catalog.ts`: export `visibleOfShop(products, chosen)`; `selectVisibleProducts(perShop, visibility = defaultVisibility())`
+- [x] 4.1 `apps/api/src/lib/catalog.ts`: export `visibleOfShop(products, chosen)`; `selectVisibleProducts(perShop, visibility = defaultVisibility())`
   built on it; `CatalogServiceOptions.settings: { read(): Promise<AdminSettings> }` (required); `loadAll()` on
   `CatalogService` returning the resolved shops with their full lists; `load()` = `loadAll()` + the settings'
   visibility + `selectVisibleProducts` + summaries (design.md D4). Verify: the two selection tests of 1.4 pass
   (`pnpm test apps/api/src/lib/catalog -t "Selection"`).
-- [ ] 4.2 Adapt the existing `createCatalogService` call sites — `apps/api/src/lib/catalog.test.ts` (`liveService`
+- [x] 4.2 Adapt the existing `createCatalogService` call sites — `apps/api/src/lib/catalog.test.ts` (`liveService`
   and the "Mismatched shop keys throw at construction" build) and `apps/api/src/routes/products.test.ts`
   (`appWithFakeShops`) — to pass `settings: { read: async () => ({ dataSource: source, visibility: defaultVisibility() }) }`
   (setup only; assertions unchanged). Verify: `pnpm test apps/api/src/lib/catalog apps/api/src/routes/products`
@@ -221,24 +221,24 @@ needs `pnpm dev`, `curl`, a browser or `.env`.
 
 ## 5. API — admin auth, service, routes, wiring
 
-- [ ] 5.1 `apps/api/src/lib/admin-auth.ts`: `createAdminAuth({ adminToken })` with `secret` and
+- [x] 5.1 `apps/api/src/lib/admin-auth.ts`: `createAdminAuth({ adminToken })` with `secret` and
   `login(token): AdminLoginResult` (design.md D5). No Hono import. Verify: the three tests of 1.7's
   `admin-auth.test.ts` pass (`pnpm test apps/api/src/lib/admin-auth`) and `pnpm typecheck` exits 0 for `@organic/api`;
   the 1.6 login tests assert the same through HTTP in 5.3.
-- [ ] 5.2 `apps/api/src/lib/admin.ts`: `createAdminService({ catalog, settings })` with `getSettings`,
+- [x] 5.2 `apps/api/src/lib/admin.ts`: `createAdminService({ catalog, settings })` with `getSettings`,
   `updateSettings` (persist, then `catalog.setSource`), `listProducts` (`loadAll` + `visibleOfShop` flags,
   `total` / `visible` per shop) and `setProductVisibility` (first-toggle default from `visibleOfShop(products, null)`,
   append / remove, `{ ok: false, error: "Product not found" }`) — design.md D6. No Hono import. Verify: the seven
   tests of 1.7's `admin.test.ts` pass (`pnpm test apps/api/src/lib/admin.test`) and `pnpm typecheck` exits 0; the 1.6
   settings / products tests assert the same through HTTP in 5.3.
-- [ ] 5.3 `apps/api/src/routes/admin.ts`: `adminRoutes(auth, service)` — `POST /login` (parse → 400, `auth.login`
+- [x] 5.3 `apps/api/src/routes/admin.ts`: `adminRoutes(auth, service)` — `POST /login` (parse → 400, `auth.login`
   → 503 / 401, `setSignedCookie` + 204), `POST /logout` (`deleteCookie` + 204), `GET /session`, the guard on
   `/settings/*` and `/products/*`, and the four guarded handlers with `{ error: "Invalid request body" }`,
   `{ error: "Invalid product id" }` (400) and the 404 mapping (design.md D7). `apps/api/src/app.ts`:
   `createApp({ catalog, basketStore, settingsStore, adminToken, now = Date.now })` building the auth and the
   service and mounting `/api/admin` (design.md D8). Verify: the twenty-two tests of 1.6 pass
   (`pnpm test apps/api/src/routes/admin`).
-- [ ] 5.4 Adapt every `createApp` call site to the new signature and wire the server: `apps/api/src/app.test.ts`
+- [x] 5.4 Adapt every `createApp` call site to the new signature and wire the server: `apps/api/src/app.test.ts`
   (stub catalog gains `loadAll: async () => ({ source: "snapshot", shops: [] })`; `settingsStore` on a temp dir,
   `adminToken: undefined`), `apps/api/src/routes/products.test.ts` and `apps/api/src/lib/catalog.test.ts` ("Runtime
   switch to snapshot"), and `add-basket`'s `apps/api/src/routes/basket.test.ts` (`fakeCatalog` gains
@@ -255,7 +255,7 @@ needs `pnpm dev`, `curl`, a browser or `.env`.
 
 ## 6. Web — client, layout, admin page
 
-- [ ] 6.1 `apps/web/src/api/client.ts`: generalise the request helper to
+- [x] 6.1 `apps/web/src/api/client.ts`: generalise the request helper to
   `request<T>(method, path, { schema?: { parse(input: unknown): T }; body? })` — the `schema` option typed
   structurally, so the file imports from `@organic/shared` only and never from `zod` (`zod` is not resolvable from
   `apps/web`; design.md D9 — do not `pnpm add zod`), add `export class ApiError extends Error` with `status`, extract
@@ -265,12 +265,12 @@ needs `pnpm dev`, `curl`, a browser or `.env`.
   visibility path (design.md D9); `getProducts` untouched. Verify: `pnpm test apps/web/src/api` passes all client
   tests — `add-catalog`'s two, `add-basket`'s four and the three of 1.8 — and `pnpm typecheck` exits 0 for
   `@organic/web` (a `zod` import would fail it with TS2307).
-- [ ] 6.2 `apps/web/src/App.tsx`: the nav `<Link to="/">Каталог</Link>`, the existing `<Link to="/basket">Кошик ({count})</Link>`,
+- [x] 6.2 `apps/web/src/App.tsx`: the nav `<Link to="/">Каталог</Link>`, the existing `<Link to="/basket">Кошик ({count})</Link>`,
   `<Link to="/admin">Адмін</Link>` (design.md D11); `apps/web/src/index.css` adds `:root { color-scheme: light; }`
   after the Tailwind import; `apps/web/index.html` sets `<body class="bg-white text-stone-900">`. Verify:
   `pnpm test apps/web/src/App apps/web/src/theme` passes, and `pnpm test apps/web/src/pages` keeps `add-catalog`'s
   and `add-basket`'s page tests green (the extra links render no `role="status"` element).
-- [ ] 6.3 `apps/web/src/components/AdminLoginForm.tsx` (`onSubmit` prop, its own `alert` state, exported
+- [x] 6.3 `apps/web/src/components/AdminLoginForm.tsx` (`onSubmit` prop, its own `alert` state, exported
   `loginAlert()` — the three alert texts), `apps/web/src/components/AdminShopSection.tsx` (`shop`, `products`,
   `onToggle` props: heading, status note, "Видимих: N", checkbox list) and `apps/web/src/pages/AdminPage.tsx`
   (design.md D10: the state machine, "Завантажуємо…", "Не вдалося завантажити адмін-панель", the login form, and the
@@ -283,14 +283,34 @@ needs `pnpm dev`, `curl`, a browser or `.env`.
 
 ## 7. Integration and done
 
-- [ ] 7.1 `docs/session-notes.md`: tick the "адмінка `/admin`" checklist line with the automated proof — quote the
+- [x] 7.1 `docs/session-notes.md`: tick the "адмінка `/admin`" checklist line with the automated proof — quote the
   `pnpm test` result lines of the 1.6 tests "Login with the right token sets the session cookie", "Switch to
   snapshot applies immediately" and "Hide a visible product", and of the 1.10 test "Unticking hides a product" —
   and end the line with the placeholder `smoke: ____`, which the human replaces after the smoke run below; add
   the session's progress entry (Зроблено / Не працює / Починати наступну сесію з) naming the dark-mode heading
   fix from the previous entry as done. Verify: the line reads `[x]`, names `pnpm test` and the four test names,
   and ends with `smoke: ____`.
-- [ ] 7.2 Run `pnpm check` and quote its summary lines (Tests … passed, spec:check ok — …).
+- [x] 7.2 Run `pnpm check` and quote its summary lines (Tests … passed, spec:check ok — …).
+
+## 8. Review findings (maker ≠ checker — docs/reviews/2026-10-04-add-admin-code-reviewer.md)
+
+Accepted: corrupt settings file must not take the storefront down (catalog and server boot fall back to defaults and
+log the file name); `findProduct` searches the full list so hidden products keep their price in baskets (MODIFIED
+"Product by id"); the panel never shows "Збережено" and "Не вдалося зберегти" together; a failed product reload after
+a successful save is reported as a load error; the basket resolves all its lines through one catalog load instead of
+one per line. Declined (owner): a nonce/expiry inside the session signature — `Max-Age` + token rotation is enough for
+a single-admin local tool; recorded in docs/autonomy-log.md.
+
+- [ ] 8.1 Scenario tests first: `products-visibility.test.ts` "Corrupt settings file falls back to defaults" and
+  "Hidden product still resolves by id"; `AdminPage.test.tsx` "Save failure clears the earlier success" and "Reload
+  failure after a successful save". Run `pnpm test`, quote the red lines.
+- [ ] 8.2 API: `lib/catalog.ts` catch the settings read (defaults + one `console.error` naming the file) and make
+  `findProduct` search `loadAll()`; `server.ts` catch the boot-time settings read the same way; `lib/basket.ts` resolve
+  lines through one `loadAll()` per request (add a `findProducts(ids)` or equivalent) — existing basket tests stay green.
+  Verify: the 8.1 API tests pass; `pnpm typecheck` exits 0.
+- [ ] 8.3 Web: `AdminPage.tsx` clear `saved` on a failed save; split the reload into its own try so a reload failure
+  shows "Не вдалося завантажити адмін-панель" and keeps "Збережено". Verify: the 8.1 web tests pass.
+- [ ] 8.4 Run `pnpm check` and quote its summary lines (Tests … passed, spec:check ok — …).
 
 ### Human smoke run (outside the loop, after 7.2)
 
