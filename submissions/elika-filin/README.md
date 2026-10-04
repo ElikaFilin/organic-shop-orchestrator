@@ -14,13 +14,17 @@ Capstone курсу **fwdays · Crash Course: Agentic Engineering** (верес�
 ```bash
 cd submissions/elika-filin
 pnpm install
-cp .env.example .env        # ADMIN_TOKEN — будь-який рядок; CONTEXT7_API_KEY — лише для MCP у Claude Code
+cp .env.example .env        # ADMIN_TOKEN — будь-який рядок (API читає .env сам при старті); CONTEXT7_API_KEY — лише для MCP
 pnpm dev                    # api → http://localhost:4000 · web → http://localhost:5173
 ```
 
 - `/` — каталог (наживо з магазинів; якщо магазин не відповідає — його знімок із `data/shops/` і підпис «Показано збережену копію»);
 - `/basket` — кошик (анонімна httpOnly-кука `basket_id`, дані в `.data/baskets.json`);
 - `/admin` — вхід за `ADMIN_TOKEN`, перемикач джерела даних, чекбокси видимості для **всіх** товарів кожного магазину.
+
+Стан застосунку — `.data/` — **закомічений**: `admin-settings.json` (джерело даних і видимість, які бачить уся команда після
+`git pull`) і `baskets.json` (у репозиторії порожній; кошики з'являються локально за кукою). Змінили налаштування в адмінці —
+закомітьте `.data/admin-settings.json`, щоб колеги отримали той самий каталог.
 
 Один гейт на все:
 
@@ -40,6 +44,7 @@ pnpm check                  # typecheck + lint + vitest (api · web · shared) +
 
 ```
 apps/api        Hono на Node — src/routes (тонкі хендлери) · src/lib (чиста логіка + тести поруч) · src/shops (адаптери) · fixtures
+.data           admin-settings.json (спільні налаштування адмінки) · baskets.json (кошики за кукою; у git — порожній)
 apps/web        Vite + React 19 + React Router — src/pages · src/components · src/api/client.ts (усі запити)
 packages/shared zod-схеми і типи, спільні для обох застосунків
 data/shops      знімок 10 + 10 товарів, перевірений незалежним агентом (кожне фото і сторінка — curl 200)

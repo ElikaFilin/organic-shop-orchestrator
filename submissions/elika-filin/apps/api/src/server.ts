@@ -2,7 +2,7 @@ import { join } from "node:path";
 import { serve } from "@hono/node-server";
 import { defaultVisibility, type Product } from "@organic/shared";
 import { createApp } from "./app";
-import { loadConfig } from "./config";
+import { loadConfig, loadDotEnv } from "./config";
 import { createTtlCache } from "./lib/cache";
 import { createCatalogService } from "./lib/catalog";
 import { createSnapshotSource } from "./lib/snapshot";
@@ -11,6 +11,7 @@ import { createBasketStore } from "./lib/store/baskets";
 import { createKarashynyardAdapter } from "./shops/karashynyard";
 import { createOsioAdapter } from "./shops/osio";
 
+loadDotEnv();
 const config = loadConfig();
 const shopFetch = (url: string, init?: { headers?: Record<string, string> }) =>
   fetch(url, { ...init, signal: AbortSignal.timeout(10_000) });
