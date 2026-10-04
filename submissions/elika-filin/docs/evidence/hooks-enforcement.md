@@ -2,7 +2,7 @@
 
 Практика з README §4 (рядок 78): `protect-env.mjs` (exit 2), `stop-gate.mjs` (Stop hook), `log-filter.mjs`, allow/deny-список у
 `.claude/settings.json`. Нижче — лише те, на що можна клікнути: транскрипти Claude Code, журнал дій і файли репозиторію.
-`T` = `/Users/elikafilin/.claude/projects/-Users-elikafilin-Documents-home-projects-organic-shop-orchestrator-submissions-elika-filin`
+`T` = `submissions/elika-filin/sessions`
 (22 транскрипти: 18 робочих сесій `claude -p` із `scripts/loop.mjs`/`review.mjs`, 11:13–13:27 UTC, і 4 навмисні демо-сесії
 14:23–14:24 UTC — про них докладно в `docs/evidence/hooks-demo.md`). Усі цитати verbatim, довгі обрізано «…».
 
@@ -137,7 +137,7 @@ All 32 tasks in `add-catalog/tasks.md` are `[x]`; `node scripts/check-verdict.mj
 
 ```bash
 cd submissions/elika-filin
-T=~/.claude/projects/-Users-elikafilin-Documents-home-projects-organic-shop-orchestrator-submissions-elika-filin
+T=submissions/elika-filin/sessions
 grep -n "Stop hook feedback" $T/*.jsonl                        # 2.1 — живий Stop hook: 1 збіг, e9adb367 рядок 37
 grep -n "hook error: \[node" $T/*.jsonl                         # 2.2 — живий protect-env: 1c9f6191 рядки 32 (блок) і 35 (цитата)
 grep -n "Rewritten by hook (log-filter)" $T/*.jsonl             # 2.3 — живий log-filter: ecd3fd9a рядки 27–28

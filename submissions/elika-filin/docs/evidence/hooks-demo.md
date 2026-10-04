@@ -8,7 +8,7 @@
 
 Тому 2026-10-04 запущено чотири навмисні сесії `claude -p` у теці проєкту (hooks з `.claude/settings.json` активні),
 кожна з інструкцією спробувати заборонене і процитувати блок. Повні відповіді агента — `docs/evidence/demo/*.json`
-(`session_id`, `num_turns`, `permission_denials`, `result`); транскрипти — `~/.claude/projects/-Users-elikafilin-Documents-home-projects-organic-shop-orchestrator-submissions-elika-filin/<session_id>.jsonl`;
+(`session_id`, `num_turns`, `permission_denials`, `result`); транскрипти — `submissions/elika-filin/sessions/<session_id>.jsonl`;
 дії — `.agent-log/actions.jsonl` (рядки 1551–1563).
 
 ## A · `.env` — зупинив deny-список, hook не встиг

@@ -1,6 +1,6 @@
 # Верифікація (червоне → зелене): докази використання
 
-Скорочення: `T` = `/Users/elikafilin/.claude/projects/-Users-elikafilin-Documents-home-projects-organic-shop-orchestrator-submissions-elika-filin` (транскрипти `claude -p`-ітерацій `scripts/loop.mjs`);
+Скорочення: `T` = `submissions/elika-filin/sessions` (транскрипти `claude -p`-ітерацій `scripts/loop.mjs`);
 `W` = `/Users/elikafilin/.claude/projects/-Users-elikafilin-Documents-home-projects-organic-shop-orchestrator/364dc8be-543d-4eb4-afd8-6b19b67b4f42/subagents/workflows` (журнали й транскрипти workflow-агентів, що писали червоні тести).
 Git — репозиторій `/Users/elikafilin/Documents/home_projects/organic-shop-orchestrator`. Timestamp'и транскриптів — UTC (`Z`), у git — `+0300`.
 
@@ -158,7 +158,7 @@ Green: `Tests  182 passed (182)` · `spec:check ok — specs: 8 · active change
 cd /Users/elikafilin/Documents/home_projects/organic-shop-orchestrator
 git log --date=iso --format='%h|%ad|%s' | grep -E ' — (red|green)$'                                  # Д1
 git show -s e869183 b5ebfd7 695f34c d91e931 84fe870 43a4a23 | grep -E 'Test Files|Tests '              # цифри в комітах
-T=/Users/elikafilin/.claude/projects/-Users-elikafilin-Documents-home-projects-organic-shop-orchestrator-submissions-elika-filin
+T=submissions/elika-filin/sessions
 W=/Users/elikafilin/.claude/projects/-Users-elikafilin-Documents-home-projects-organic-shop-orchestrator/364dc8be-543d-4eb4-afd8-6b19b67b4f42/subagents/workflows
 grep -n -o 'failsForRightReason":[a-z]*' $W/wf_*/journal.jsonl                                          # Д3: 3 × true
 # Д2/Д4/Д5: кожен tool_result з рядком "Test Files" — файл, рядок, час, підсумок

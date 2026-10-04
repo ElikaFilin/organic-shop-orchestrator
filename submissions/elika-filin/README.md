@@ -72,7 +72,7 @@ scripts         loop.mjs · review.mjs · check-verdict.mjs · hooks-selftest.mj
 ## 4. Практики Agentic Engineering → докази
 
 Два рівні доказів. **«Де подивитися»** — файл/коміт, що існує. **«Доказ використання»** — `docs/evidence/*.md`: дослівні,
-датовані витяги з транскриптів 22 сесій `claude -p` (`~/.claude/projects/…-submissions-elika-filin/*.jsonl`), журналів
+датовані витяги з транскриптів 22 сесій `claude -p` (22 файли `<session_id>.jsonl` у `submissions/elika-filin/sessions/`), журналів
 workflow-агентів, `.agent-log/` і `git log`, з номерами рядків; кожен витяг перевірив окремий агент-верифікатор, і кожен файл
 має розділ «чого НЕ знайшли». Відтворити: `pnpm transcripts -- "<маркер>"` (`scripts/transcript-grep.mjs`).
 

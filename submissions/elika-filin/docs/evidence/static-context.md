@@ -2,7 +2,7 @@
 
 Практика з README §4 «Контекст-інженерія · статичний». Доводимо не те, що файли існують, а що кожна `claude -p`-сесія
 (loop-агент, рецензенти) їх **отримала** і **змінювала поведінку** через них. Транскрипти:
-`/Users/elikafilin/.claude/projects/-Users-elikafilin-Documents-home-projects-organic-shop-orchestrator-submissions-elika-filin/*.jsonl`
+`submissions/elika-filin/sessions/*.jsonl`
 (нижче `T/` = ця тека; час у транскриптах — UTC, у `git log` — +0300). Усі цитати verbatim, довгі обрізано «…».
 
 ## 1. Що доводимо
@@ -152,7 +152,7 @@ The human resolved it on 2026-10-04: `:` stays literal in paths, and `specs/bask
 ## 3. Як відтворити
 
 ```sh
-T=/Users/elikafilin/.claude/projects/-Users-elikafilin-Documents-home-projects-organic-shop-orchestrator-submissions-elika-filin
+T=submissions/elika-filin/sessions
 R=/Users/elikafilin/Documents/home_projects/organic-shop-orchestrator/submissions/elika-filin
 # Д1: у кожній сесії рядок 18 — attachment/instructions з AGENTS.md і .claude/rules
 node -e 'const fs=require("fs");for(const f of fs.readdirSync(process.argv[1]).filter(f=>f.endsWith(".jsonl"))){const o=JSON.parse(fs.readFileSync(process.argv[1]+"/"+f,"utf8").split("\n")[17]);console.log(f,o.attachment?.type,(o.attachment?.files||[]).map(x=>x.path.split("/").slice(-2).join("/")).join(" "))}' "$T"

@@ -4,7 +4,7 @@
 read-only інструменти, його вердикт зберігається дослівно, а знахідки стають сценаріями й задачами, які maker закриває в
 новій сесії. Нижче — не «файл існує», а ланцюжки «рецензент знайшов → специфікація змінилась → maker написав тест → коміт».
 
-Позначення: `<T>` = `/Users/elikafilin/.claude/projects/-Users-elikafilin-Documents-home-projects-organic-shop-orchestrator-submissions-elika-filin`
+Позначення: `<T>` = `submissions/elika-filin/sessions`
 (транскрипти `claude -p`-сесій), `<W>` = `/Users/elikafilin/.claude/projects/-Users-elikafilin-Documents-home-projects-organic-shop-orchestrator/364dc8be-543d-4eb4-afd8-6b19b67b4f42/subagents/workflows`
 (журнали workflow). Цитати з JSONL — після JSON-декодування рядка; час — UTC з поля `timestamp`.
 
@@ -149,7 +149,7 @@ verify-archive: `<W>/wf_d86bbf00-154` L5, `<W>/wf_87b3ded2-557` L5, `<W>/wf_5e01
 ## 3. Як відтворити
 
 ```bash
-T=/Users/elikafilin/.claude/projects/-Users-elikafilin-Documents-home-projects-organic-shop-orchestrator-submissions-elika-filin
+T=submissions/elika-filin/sessions
 # (A) сесії, чиє перше user-повідомлення починається з "You review": лічильник tool_use + рядок вердикту
 node -e 'const fs=require("fs");for(const f of fs.readdirSync(process.argv[1]).filter(f=>f.endsWith(".jsonl"))){const L=fs.readFileSync(process.argv[1]+"/"+f,"utf8").split("\n");let first,ts,t={},last;for(const l of L){let o;try{o=JSON.parse(l)}catch{continue}const c=o.message?.content;if(!first&&o.type==="user"){first=typeof c==="string"?c:(c||[]).map(x=>x.text||"").join("");ts=o.timestamp}if(o.type==="assistant"&&Array.isArray(c))for(const x of c){if(x.type==="tool_use")t[x.name]=(t[x.name]||0)+1;if(x.type==="text"&&x.text.trim())last=x.text}}if(/^You review/.test((first||"").trim()))console.log(f,ts,JSON.stringify(t),(last||"").split("\n").filter(l=>/READY|FIX FIRST/.test(l)).join(" | "))}' "$T"
 sed -n '76p;80p' "$T/30641f9b-1f3e-48ca-b277-59d2a4a57044.jsonl" | cut -c1-400     # відмова allow-list і наступний Read

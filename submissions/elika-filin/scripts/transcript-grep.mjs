@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 // Proof-of-use helper: search the Claude Code session transcripts of THIS project directory (every `claude -p`
 // run started by scripts/loop.mjs and scripts/review.mjs lands there, with the project hooks active) for a marker
-// and print decoded, timestamped matches. The transcripts live outside the repo, in ~/.claude/projects/<encoded cwd>/.
+// and print decoded, timestamped matches. The capstone's 22 transcripts sit in ./sessions/<session_id>.jsonl;
+// transcripts of newer runs live in ~/.claude/projects/<encoded cwd>/ (use --dir to point there).
 //
 //   pnpm transcripts -- "[dynamic-context hook]"
 //   pnpm transcripts -- "Blocked by hook (stop-gate)" --context 300
@@ -21,7 +22,10 @@ if (!marker) {
   process.exit(2);
 }
 const encoded = resolve(process.cwd()).replace(/[^A-Za-z0-9]/g, "-");
-const dir = arg("--dir", join(homedir(), ".claude", "projects", encoded));
+// The 22 transcripts of this capstone were moved into ./sessions/<session_id>.jsonl so a clone of the repo can be
+// searched; new `claude -p` runs still land in ~/.claude/projects/ (use --dir to point there).
+const sessionsDir = join(process.cwd(), "sessions");
+const dir = arg("--dir", existsSync(sessionsDir) ? sessionsDir : join(homedir(), ".claude", "projects", encoded));
 const context = Number(arg("--context", 200));
 const max = Number(arg("--max", 50));
 if (!existsSync(dir)) {

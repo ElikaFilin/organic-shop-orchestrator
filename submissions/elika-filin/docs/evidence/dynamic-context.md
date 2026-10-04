@@ -5,7 +5,7 @@
 Hook `dynamic-context.mjs` підключений на `SessionStart` і `UserPromptSubmit` і **на кожен запит** рахує з диска те, чого статичні
 правила знати не можуть: активні OpenSpec-зміни з прогресом задач, рядок «Починати наступну сесію з» із `docs/session-notes.md` і вердикт
 останнього `pnpm check` (`.agent-log/last-check.json`). Нижче — не файл hook-а, а блоки `[dynamic-context hook]`, які реально отримали агенти
-(loop-реалізатор, два рев'юери), з номерами рядків у транскриптах `~/.claude/projects/-Users-elikafilin-Documents-home-projects-organic-shop-orchestrator-submissions-elika-filin/<sessionId>.jsonl`.
+(loop-реалізатор, два рев'юери), з номерами рядків у транскриптах `submissions/elika-filin/sessions/<sessionId>.jsonl`.
 
 Технічна примітка: у транскрипті блок лежить у рядку `{"type":"attachment","attachment":{"type":"hook_success","hookName":"UserPromptSubmit"|"SessionStart:startup",
 "command":"node ${CLAUDE_PROJECT_DIR}/.claude/hooks/dynamic-context.mjs","content":"[dynamic-context hook]\n…","stdout":"…"},"rendered":[{"content":"<system-reminder>\n…"}]}`;
@@ -155,7 +155,7 @@ Last pnpm check: GREEN at 2026-10-04T12:14:19.317Z — Tests  84 passed (84) · 
 ## 3. Як відтворити
 
 ```bash
-T=~/.claude/projects/-Users-elikafilin-Documents-home-projects-organic-shop-orchestrator-submissions-elika-filin
+T=submissions/elika-filin/sessions
 grep -c '\[dynamic-context hook\]' $T/*.jsonl            # рахує РЯДКИ: 3 на сесію = L3 (SessionStart) + L14 (UserPromptSubmit) + L18 (attachment "instructions" = CLAUDE.md, де згадано hook); f25ab181 → 4 (ще L69)
 node -e 'const fs=require("fs");for(const f of fs.readdirSync(process.argv[1]).filter(f=>f.endsWith(".jsonl")))fs.readFileSync(process.argv[1]+"/"+f,"utf8").split("\n").forEach((l,i)=>{let o;try{o=JSON.parse(l)}catch{return}if(o.type==="attachment"&&o.attachment?.type==="hook_success"&&/dynamic-context/.test(o.attachment.command))console.log(f.slice(0,8),"L"+(i+1),o.attachment.hookEvent,o.timestamp,o.attachment.content.split("\n").filter(s=>/tasks done|Last pnpm/.test(s)).join(" | "))})' $T
 sed -n '41,70p' .claude/settings.json; sed -n '5,6p' .agent-log/loop.jsonl; grep -n 'dynamic-context' docs/reviews/*.md

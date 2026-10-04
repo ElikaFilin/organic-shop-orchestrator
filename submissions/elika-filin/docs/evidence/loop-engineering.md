@@ -11,7 +11,7 @@ gateBefore, gateAfter, tasksBefore, tasksAfter, turns, outputTokens, costUsd, ag
 перший timestamp транскрипту ∈ [row.ts − agentMs − 60 s, row.ts]. У кожне вікно потрапила рівно одна сесія, і в кожній
 перше user-повідомлення (рядок 4 файлу) — промпт циклу. Скрипт зіставлення — у розділі 3.
 
-Транскрипти (далі `T/`): `/Users/elikafilin/.claude/projects/-Users-elikafilin-Documents-home-projects-organic-shop-orchestrator-submissions-elika-filin/`. Усі дати — 2026-10-04.
+Транскрипти (далі `T/`): `submissions/elika-filin/sessions/`. Усі дати — 2026-10-04.
 
 | loop.jsonl | row.ts | change · iter | agentMs | turns | session id = `T/<id>.jsonl` | first … last timestamp | assistant-записів (msg id) | docs/loops |
 |---|---|---|---|---|---|---|---|---|
@@ -148,7 +148,7 @@ I'll tick them with the edit tool instead.
 
 ```bash
 R=/Users/elikafilin/Documents/home_projects/organic-shop-orchestrator/submissions/elika-filin
-T=/Users/elikafilin/.claude/projects/-Users-elikafilin-Documents-home-projects-organic-shop-orchestrator-submissions-elika-filin
+T=submissions/elika-filin/sessions
 # 1) зіставити 9 рядків loop.jsonl із сесіями за вікном [ts − agentMs − 60 s, ts] — має бути рівно один файл на рядок
 node -e '
 const fs=require("fs"),p=require("path"),[T,R]=process.argv.slice(1);
