@@ -50,7 +50,9 @@ Upstream facts observed on 2026-10-04 (they shape the parsers and the fixtures):
 1. **Adapter contract** — `ShopAdapter = { shop: ShopInfo; fetchProducts(): Promise<ShopFetchResult> }`,
    `ShopFetchResult = { ok: true; products: Product[] } | { ok: false; error: string }` (in
    `src/shops/types.ts`). Factories `createKarashynyardAdapter({ fetch })` / `createOsioAdapter({ fetch })`
-   take a `FetchLike = (url: string) => Promise<{ ok: boolean; status: number; text(): Promise<string> }>`;
+   take a `FetchLike = (url: string, init?: { headers?: Record<string, string> }) => Promise<{ ok: boolean; status: number; text(): Promise<string> }>`
+   (the osio adapter passes `{ headers: { "Application-Instance": "3fc23022-4cf1-4d8b-a24c-c50e2651d4e0" } }` — learned from the
+   first live smoke run on 2026-10-04: without the tenant header the API answers 400 and the catalog silently fell back to the snapshot);
    `server.ts` passes `(url) => fetch(url, { signal: AbortSignal.timeout(10_000) })`, tests pass a stub
    returning fixture text. Each adapter also exports its pure parser (`parseKarashynyardHtml(html)`,
    `parseOsioJson(text)`) so the fixture tests need no fetch at all.
@@ -163,3 +165,11 @@ apps/web/src/router.tsx, App.tsx, main.tsx    routes, layout, RouterProvider
   cost for 5 minutes after a success.
 - [27 scenarios → 27 tests] → each test is a handful of lines over shared fixtures/fakes; keep helpers in the
   test files, not in `src/`.
+
+## Reality check (2026-10-04, after the first green loop)
+
+- The live smoke run printed `osio:snapshot-fallback:10 ERR=osio: HTTP 400`. The OSIO backend is multi-tenant and
+  requires `Application-Instance: 3fc23022-4cf1-4d8b-a24c-c50e2651d4e0` (public id from the site's bundle; the scraper
+  used it, the spec forgot it). The fallback behaved exactly as specified, which is why the gate stayed green while live
+  data was wrong. Fix: requirement + scenario "Request carries the tenant header", task group 8. Risk: the id changes on a
+  frontend redeploy — then the fallback kicks in again and the error is visible in `shops[].error`.

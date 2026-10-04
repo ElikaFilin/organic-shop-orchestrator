@@ -11,13 +11,19 @@ available when a shop is down, and serves it over REST in the normalized `Produc
 The system SHALL expose one `Product` schema shared by API and web: `id` = `"<shopKey>:<sourceId>"`,
 `shopKey` ∈ {`karashynyard`, `osio`}, `shopName`, `sourceId`, `name`, `price` (number, UAH, exactly as
 published), `currency: "UAH"`, `imageUrl`, `productUrl`, `description`, `category`, `unit`, `inStock`.
-A snapshot file in `data/shops/` SHALL conform to
+A snapshot file in `data/shops/` SHALL be read once per process and a failed read SHALL NOT be memoized. It SHALL conform to
 `{ shop: { key, name, url }, fetchedAt, products: [{ sourceId, name, price, currency, imageUrl, productUrl, description, category, unit, inStock }] }`.
 
 #### Scenario: Snapshot product normalizes to a Product
 - **WHEN** `data/shops/karashynyard.json` is loaded through the snapshot loader
 - **THEN** it yields 10 products whose first element equals `{ id: "karashynyard:1498486363994", shopKey: "karashynyard", shopName: "Карашин Яр", sourceId: "1498486363994", name: "Філе індички, 1 кг", price: 665, currency: "UAH", imageUrl: "https://static.tildacdn.net/tild3635-3935-4665-b364-633939613631/___13.jpg", productUrl: "https://karashynyard.com.ua/#rec638772397", description: "Ніжне філе без кістки для котлет, запікання, тушкування та дитячих страв.", category: "Індичка з вільного вигулу", unit: "1 кг", inStock: true }`
 - **AND** `ProductSchema.safeParse(...)` of that element has `success: true`
+
+#### Scenario: A failed snapshot read is retried
+- **WHEN** `createSnapshotSource(dir).read("osio")` is called while `dir` has no `osio.json`, then the file is written
+  (a copy of `data/shops/osio.json`) and `read("osio")` is called again
+- **THEN** the first call rejects with an `Error` and the second call resolves with 10 products whose first `id` is
+  `"osio:6abcf192b7db2532803d266d"` (a rejection is never memoized)
 
 ### Requirement: Data source mode
 The catalog SHALL run in one of two modes, `live` or `snapshot`. The initial mode comes from `DATA_SOURCE`
@@ -50,8 +56,10 @@ service (`setSource`), so a later change only has to add the UI.
 ### Requirement: Live mode with snapshot fallback
 In `live` mode the catalog SHALL fetch each shop through its adapter. A shop whose adapter returns `ok: false`
 SHALL be served from its snapshot in `data/shops/<key>.json` with `status: "snapshot-fallback"` and the
-adapter's `error`; a shop whose adapter succeeds has `status: "live"` and no `error`. `GET /api/products`
-SHALL answer 200 in both cases — never 500 because a shop is down.
+adapter's `error`; a shop whose adapter succeeds has `status: "live"` and no `error`. If the snapshot cannot be
+read either (missing file, invalid JSON, schema failure), the shop SHALL be reported with `status: "unavailable"`,
+`count: 0` and the adapter's `error`, and its products are omitted. `GET /api/products` SHALL answer 200 in all
+three cases — never 500 because a shop is down.
 
 #### Scenario: Both shops live
 - **WHEN** the catalog runs in `live` mode; the fake karashynyard adapter returns `{ ok: true, products }` with
@@ -72,9 +80,18 @@ SHALL answer 200 in both cases — never 500 because a shop is down.
   `{ key: "karashynyard", name: "Карашин Яр", url: "https://karashynyard.com.ua/#rec638772397", status: "snapshot-fallback", error: "karashynyard: HTTP 503", count: 10 }`,
   `shops[1].status` is `"live"`, `products.length` is 20 and `products[0]` is `id: "karashynyard:1498486363994"`, `price: 665`
 
+#### Scenario: Shop down and its snapshot unreadable
+- **WHEN** the catalog runs in `live` mode over an empty temporary snapshot directory (no `karashynyard.json`); the
+  fake karashynyard adapter returns `{ ok: false, error: "karashynyard: HTTP 503" }`; the fake osio adapter returns its
+  10 snapshot products; and `GET /api/products` is requested
+- **THEN** the status is 200, the body has `source: "live"`, `shops[0]` equals
+  `{ key: "karashynyard", name: "Карашин Яр", url: "https://karashynyard.com.ua/#rec638772397", status: "unavailable", error: "karashynyard: HTTP 503", count: 0 }`,
+  `shops[1].status` is `"live"` with `count: 10`, `products.length` is 10 and `products[0].id` is `"osio:6abcf192b7db2532803d266d"`
+
 ### Requirement: Live results are cached per shop for five minutes
 In `live` mode a successful adapter result SHALL be reused for 5 minutes (300 000 ms) per shop before the
-adapter is called again; a failed result SHALL NOT be cached, so the next request retries the shop.
+adapter is called again; a failed result SHALL NOT be cached, so the next request retries the shop. Concurrent
+loads on a cold cache SHALL share one in-flight adapter call per shop instead of each calling the adapter.
 
 #### Scenario: Second load within five minutes reuses the cache
 - **WHEN** the catalog runs in `live` mode with an injected clock `now`, a cache created as
@@ -91,6 +108,11 @@ adapter is called again; a failed result SHALL NOT be cached, so the next reques
   `{ ok: true, products }` (its 10 snapshot products) at `now = 1000`; and `load()` is called at both times
 - **THEN** the first load reports osio `status: "snapshot-fallback"`, `error: "osio: HTTP 502"`; the second
   load reports osio `status: "live"` and the adapter has been called twice
+
+#### Scenario: Concurrent cold loads call each adapter once
+- **WHEN** the catalog runs in `live` mode with an empty cache and both fake adapters resolving their 10 snapshot
+  products after a tick, and `load()` is called three times without awaiting in between (`Promise.all`)
+- **THEN** each fake adapter has been called exactly once and each of the three results has `products.length` 20
 
 ### Requirement: Visible products are the first ten per shop
 The catalog SHALL choose the products it serves with one pure selection function over the full per-shop lists:

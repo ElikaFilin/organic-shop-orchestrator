@@ -43,12 +43,16 @@ range, unit word кг/г/шт/л/мл), `inStock` = true. Tags and surrounding w
 - **THEN** the result is `{ ok: false, error: "karashynyard: no product cards found" }` and nothing is thrown
 
 ### Requirement: Osio adapter maps the products API
-The osio adapter SHALL GET `https://arsubs-production-1-back-t5tdi.ondigitalocean.app/v1/products` and map
+The osio adapter SHALL GET `https://arsubs-production-1-back-t5tdi.ondigitalocean.app/v1/products` with the
+request header `Application-Instance: 3fc23022-4cf1-4d8b-a24c-c50e2651d4e0` (the shop's public tenant id, shipped in
+its own JS bundle; without it the API answers `400 Failed to determine the application`) and map
 each array item to a `Product` in response order: `sourceId` = `id`, `name` = trimmed `name`, `price` =
 `price`, `imageUrl` = `imageUrl`, `productUrl` = `https://osio-organic.com.ua/products/<id>`, `category` =
 trimmed `categoryName`, `unit` = trimmed `unit`, `inStock` = `!isComingSoon`, `description` = `description`
 with whitespace runs collapsed to one space and, when longer than 300 characters, cut at the last space before
-position 300 and suffixed with `…`.
+position 300 and suffixed with `…`. An item that lacks a required field (`id`, `name`, numeric `price`, `imageUrl`,
+`unit`, `categoryName`, string `description`, boolean `isComingSoon`) SHALL be skipped, like a Tilda card without an
+integer price; a response whose items are all malformed is the `"osio: no products"` failure.
 
 #### Scenario: Fixture response yields twelve products in response order
 - **WHEN** the adapter's fetch resolves with status 200 and the body of `apps/api/fixtures/osio.json` (12 items)
@@ -58,6 +62,18 @@ position 300 and suffixed with `…`.
   (the same description string as that product's entry in `data/shops/osio.json`)
 - **AND** `products[1]` has `name: "Щавлик органічний, осінній"` (the fixture's trailing space removed),
   `price: 150`, `unit: "100 г"`, `category: "Зелень"`, `inStock: true`
+
+#### Scenario: Malformed item is skipped
+- **WHEN** the adapter's fetch resolves with status 200 and the 12 fixture items where item index 2 has
+  `description: null`
+- **THEN** the result is `ok: true` with 11 products, `products[2].id` is `"osio:" + <fixture item index 3 id>` and no
+  product has the index-2 item's id
+
+#### Scenario: Request carries the tenant header
+- **WHEN** the adapter's `fetchProducts()` runs with a stub fetch that records its arguments and resolves with status 200
+  and the body of `apps/api/fixtures/osio.json`
+- **THEN** the stub was called once with url `https://arsubs-production-1-back-t5tdi.ondigitalocean.app/v1/products`
+  and an init whose `headers` equals `{ "Application-Instance": "3fc23022-4cf1-4d8b-a24c-c50e2651d4e0" }`
 
 #### Scenario: Coming-soon item is out of stock
 - **WHEN** the adapter's fetch resolves with status 200 and a body that is a one-item array holding the

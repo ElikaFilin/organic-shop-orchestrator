@@ -11,7 +11,8 @@ to the source, and tells the buyer when the catalog is loading, has failed, or i
 Route `/` SHALL render the heading "Organic Catalog" and, for each shop in the API response order, a section
 headed by a link with the shop's name to the shop URL, containing a list (`<ul>`) with one card per product
 of that shop: the image (`alt` = product name), the name, the unit, the price formatted `"<price> ₴"`, and a
-link "У магазині" to the product's `productUrl`. Ukrainian copy; no basket controls.
+link with visible text "У магазині" and accessible name `"У магазині: <name>"` (`aria-label`) to the product's
+`productUrl`, so screen-reader users can tell the links apart. Ukrainian copy.
 
 #### Scenario: Two shops with products
 - **WHEN** `getProducts()` resolves with `{ source: "live", shops: [ { key: "karashynyard", name: "Карашин Яр", url: "https://karashynyard.com.ua/#rec638772397", status: "live", count: 2 }, { key: "osio", name: "OSIO organic", url: "https://osio-organic.com.ua/", status: "live", count: 1 } ], products: [ <karashynyard:1498486363994 "Філе індички, 1 кг" 665 unit "1 кг">, <karashynyard:1651059869009 "Каре молочної телятини, 1 кг" 1410 unit "1 кг">, <osio:6abcf192b7db2532803d266d "Капуста кольрабі, органічна осіння" 195 unit "Качан 350-450 г"> ] }`
@@ -22,8 +23,8 @@ link "У магазині" to the product's `productUrl`. Ukrainian copy; no bas
   "OSIO organic" has 1
 - **AND** an image with `alt="Філе індички, 1 кг"` and
   `src="https://static.tildacdn.net/tild3635-3935-4665-b364-633939613631/___13.jpg"`; the texts "665 ₴",
-  "1410 ₴", "195 ₴", "1 кг" and "Качан 350-450 г" are shown; the first card's link "У магазині" has
-  `href="https://karashynyard.com.ua/#rec638772397"` and the third card's has
+  "1410 ₴", "195 ₴", "1 кг" and "Качан 350-450 г" are shown; the link named "У магазині: Філе індички, 1 кг" has
+  `href="https://karashynyard.com.ua/#rec638772397"` and the link named "У магазині: Капуста кольрабі, органічна осіння" has
   `href="https://osio-organic.com.ua/products/6abcf192b7db2532803d266d"`
 - **AND** no element with `role="status"` is rendered
 
@@ -33,7 +34,8 @@ While `getProducts()` is pending the page SHALL render an element with `role="st
 `role="status"` showing "Не вдалося завантажити каталог" and no product list. In the ready state a shop whose
 `status` is `"snapshot-fallback"` SHALL show the note "Показано збережену копію" with `role="status"` inside its
 section; shops with `status` `"live"` or `"snapshot"` (the chosen snapshot mode) SHALL show no note, so a
-response in which every shop is `live` or `snapshot` renders no `role="status"` element at all.
+response in which every shop is `live` or `snapshot` renders no `role="status"` element at all. A shop section whose `status` is `"unavailable"` SHALL show the note
+"Магазин тимчасово недоступний" with `role="status"` and no list.
 
 #### Scenario: Loading state
 - **WHEN** `getProducts()` returns a promise that has not settled and route `/` is rendered
@@ -55,6 +57,12 @@ response in which every shop is `live` or `snapshot` renders no `role="status"` 
   and both shops have `status: "snapshot"`, and route `/` is rendered
 - **THEN** no element with `role="status"` is rendered, and all 3 product cards are rendered (the list under
   "Карашин Яр" has 2 items, the list under "OSIO organic" has 1)
+
+#### Scenario: Unavailable shop
+- **WHEN** `getProducts()` resolves with `{ source: "live", shops: [ { key: "karashynyard", name: "Карашин Яр", url: "https://karashynyard.com.ua/#rec638772397", status: "unavailable", error: "karashynyard: HTTP 503", count: 0 }, { key: "osio", name: "OSIO organic", url: "https://osio-organic.com.ua/", status: "live", count: 1 } ], products: [ <osio:6abcf192b7db2532803d266d "Капуста кольрабі, органічна осіння" 195> ] }`
+  and route `/` is rendered
+- **THEN** the section under "Карашин Яр" contains an element with `role="status"` and text "Магазин тимчасово недоступний"
+  and no list, and the section under "OSIO organic" has a list with 1 item
 
 ### Requirement: API client
 All server calls SHALL go through `src/api/client.ts`: `getProducts()` requests `GET /api/products`,
