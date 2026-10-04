@@ -5,7 +5,7 @@ read-only інструменти, його вердикт зберігаєтьс
 новій сесії. Нижче — не «файл існує», а ланцюжки «рецензент знайшов → специфікація змінилась → maker написав тест → коміт».
 
 Позначення: `<T>` = `submissions/elika-filin/sessions`
-(транскрипти `claude -p`-сесій), `<W>` = `/Users/elikafilin/.claude/projects/-Users-elikafilin-Documents-home-projects-organic-shop-orchestrator/364dc8be-543d-4eb4-afd8-6b19b67b4f42/subagents/workflows`
+(транскрипти `claude -p`-сесій), `<W>` = `submissions/elika-filin/sessions/workflows`
 (журнали workflow). Цитати з JSONL — після JSON-декодування рядка; час — UTC з поля `timestamp`.
 
 ## 1. Що доводимо
@@ -158,7 +158,7 @@ cd /Users/elikafilin/Documents/home_projects/organic-shop-orchestrator/submissio
 grep -n "Review findings\|Review round 2" openspec/changes/archive/*/tasks.md
 grep -rn "Shop down and its snapshot unreadable\|Non-integer price sums without float noise\|Clear and change the quantity race\|Corrupt settings file falls back to defaults" openspec/changes/archive/*/specs apps/api/src apps/web/src
 (cd ../.. && git log --format='%h %ad %s' --date=iso -S'## 9. Review findings' -- submissions/elika-filin/openspec && git show 347e42b -- submissions/elika-filin/openspec/changes/add-basket/specs/basket-api/spec.md | grep -n "rounded")
-W=/Users/elikafilin/.claude/projects/-Users-elikafilin-Documents-home-projects-organic-shop-orchestrator/364dc8be-543d-4eb4-afd8-6b19b67b4f42/subagents/workflows
+W=submissions/elika-filin/sessions/workflows
 node -e 'const fs=require("fs");for(const w of fs.readdirSync(process.argv[1]).filter(d=>d.startsWith("wf_"))){const p=process.argv[1]+"/"+w+"/journal.jsonl";if(!fs.existsSync(p))continue;const lab={};fs.readFileSync(p,"utf8").split("\n").forEach((l,i)=>{let o;try{o=JSON.parse(l)}catch{return}if(o.type==="started")lab[o.agentId]=o.label;if(o.type==="result"&&/critic:|check-red|verify-archive/.test(lab[o.agentId]||"")){let r=o.result;try{r=JSON.parse(r)}catch{}console.log(w,"L"+(i+1),lab[o.agentId],JSON.stringify(r.verdict??r.ok),(r.findings||[]).length,JSON.stringify((r.findings||[])[0]?.issue||"").slice(0,160))}})}' "$W"
 ```
 

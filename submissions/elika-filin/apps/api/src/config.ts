@@ -14,7 +14,7 @@ export interface AppConfig {
 }
 
 const DEFAULT_SNAPSHOT_DIR = fileURLToPath(new URL("../../../data/shops", import.meta.url));
-/** Runtime JSON stores live in <repo>/.data (git-ignored); DATA_DIR points them elsewhere. */
+/** Runtime JSON stores live in <repo>/.data (committed since PR #3: shared admin settings, empty basket store); DATA_DIR points them elsewhere. */
 const DEFAULT_DATA_DIR = fileURLToPath(new URL("../../../.data", import.meta.url));
 
 /** `<repo>/.env` — copied from .env.example by a human; the agent never reads or edits it (hook + deny rule). */
@@ -27,8 +27,14 @@ const DEFAULT_DOTENV = fileURLToPath(new URL("../../../.env", import.meta.url));
  */
 export function loadDotEnv(file: string = DEFAULT_DOTENV): boolean {
   if (!existsSync(file)) return false;
-  process.loadEnvFile(file);
-  return true;
+  try {
+    process.loadEnvFile(file);
+    return true;
+  } catch (error) {
+    // An unreadable .env (permissions, a directory) must not kill startup — the app boots without an admin token.
+    console.error(`loadDotEnv: could not read ${file}: ${error instanceof Error ? error.message : String(error)}`);
+    return false;
+  }
 }
 
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {

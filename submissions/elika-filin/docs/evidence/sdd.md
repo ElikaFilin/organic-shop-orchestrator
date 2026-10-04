@@ -4,7 +4,7 @@
 `openspec/` існує», а слід того, що агенти **писали специфікацію до коду, ганяли її через CLI і міняли її, коли реальність,
 рев'ю або внутрішня суперечність не збіглися**. Шляхи: відносні — від `submissions/elika-filin/`, абсолютні — транскрипти поза
 репо. Час у git — `+0300`, у транскриптах — UTC (`Z`): 14:26 +0300 = 11:26Z. Session id усіх воркфлоу-агентів — `364dc8be-543d-4eb4-afd8-6b19b67b4f42`;
-`W` нижче = `/Users/elikafilin/.claude/projects/-Users-elikafilin-Documents-home-projects-organic-shop-orchestrator/364dc8be-543d-4eb4-afd8-6b19b67b4f42/subagents/workflows`.
+`W` нижче = `submissions/elika-filin/sessions/workflows`.
 
 ## 1. Що доводимо
 1. Порядок у git: `propose` → `test … red` → `feat … green` → `archive` для кожної з трьох змін.
@@ -139,7 +139,7 @@ git show 183127e -- submissions/elika-filin/openspec/changes/add-basket/specs/ba
 cd submissions/elika-filin && pnpm spec:check && grep -n 'self-contradictory' docs/loops/2026-10-04T12-19-57-add-basket.md
 grep -c 'pnpm exec openspec' .agent-log/actions.jsonl; grep -c openspec .agent-log/actions.jsonl; grep -o openspec .agent-log/actions.jsonl | wc -l   # 0 · 286 · 314 на 14:47Z, §4
 sed -n '288p;294p;372p' .agent-log/actions.jsonl; node -e 'const S=new Set();for(const l of require("fs").readFileSync(".agent-log/actions.jsonl","utf8").split("\n"))try{S.add(JSON.parse(l).session)}catch{};console.log(S.size)'   # сесій: 21 на 14:47Z
-W=/Users/elikafilin/.claude/projects/-Users-elikafilin-Documents-home-projects-organic-shop-orchestrator/364dc8be-543d-4eb4-afd8-6b19b67b4f42/subagents/workflows
+W=submissions/elika-filin/sessions/workflows
 node -e 'const fs=require("fs"),p=require("path"),W=process.argv[1];for(const d of fs.readdirSync(W))if(d.startsWith("wf_"))for(const f of fs.readdirSync(p.join(W,d)))if(f.endsWith(".jsonl")&&f!="journal.jsonl")fs.readFileSync(p.join(W,d,f),"utf8").split("\n").forEach((l,i)=>{let o;try{o=JSON.parse(l)}catch{return}for(const c of (o.message?.content||[]))if(c.type=="tool_use"&&c.name=="Bash"&&/pnpm exec openspec/.test(c.input.command))console.log(d+"/"+f+":"+(i+1),o.timestamp,c.input.command.slice(0,120))})' "$W"
 grep -n 'Failed to determine the application' /Users/elikafilin/.claude/projects/-Users-elikafilin-Documents-home-projects-organic-shop-orchestrator/364dc8be-543d-4eb4-afd8-6b19b67b4f42.jsonl | cut -c1-60 | head -3
 ```

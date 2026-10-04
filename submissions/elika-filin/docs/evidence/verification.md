@@ -1,7 +1,7 @@
 # Верифікація (червоне → зелене): докази використання
 
 Скорочення: `T` = `submissions/elika-filin/sessions` (транскрипти `claude -p`-ітерацій `scripts/loop.mjs`);
-`W` = `/Users/elikafilin/.claude/projects/-Users-elikafilin-Documents-home-projects-organic-shop-orchestrator/364dc8be-543d-4eb4-afd8-6b19b67b4f42/subagents/workflows` (журнали й транскрипти workflow-агентів, що писали червоні тести).
+`W` = `submissions/elika-filin/sessions/workflows` (журнали й транскрипти workflow-агентів, що писали червоні тести).
 Git — репозиторій `/Users/elikafilin/Documents/home_projects/organic-shop-orchestrator`. Timestamp'и транскриптів — UTC (`Z`), у git — `+0300`.
 
 ## 1. Що доводимо
@@ -159,7 +159,7 @@ cd /Users/elikafilin/Documents/home_projects/organic-shop-orchestrator
 git log --date=iso --format='%h|%ad|%s' | grep -E ' — (red|green)$'                                  # Д1
 git show -s e869183 b5ebfd7 695f34c d91e931 84fe870 43a4a23 | grep -E 'Test Files|Tests '              # цифри в комітах
 T=submissions/elika-filin/sessions
-W=/Users/elikafilin/.claude/projects/-Users-elikafilin-Documents-home-projects-organic-shop-orchestrator/364dc8be-543d-4eb4-afd8-6b19b67b4f42/subagents/workflows
+W=submissions/elika-filin/sessions/workflows
 grep -n -o 'failsForRightReason":[a-z]*' $W/wf_*/journal.jsonl                                          # Д3: 3 × true
 # Д2/Д4/Д5: кожен tool_result з рядком "Test Files" — файл, рядок, час, підсумок
 node -e 'const fs=require("fs");for(const f of process.argv.slice(1)){fs.readFileSync(f,"utf8").split("\n").forEach((l,i)=>{let o;try{o=JSON.parse(l)}catch{return}
