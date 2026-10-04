@@ -7,7 +7,7 @@ the 2026-10-04 captures by `make-fixtures.py` beside them (provenance only) — 
 
 ## 1. Scenario tests first (red run)
 
-- [ ] 1.1 Confirm the committed fixtures are in place and untouched: `apps/api/fixtures/karashynyard.html`,
+- [x] 1.1 Confirm the committed fixtures are in place and untouched: `apps/api/fixtures/karashynyard.html`,
   `apps/api/fixtures/osio.json` and `apps/api/fixtures/make-fixtures.py` (provenance only — never run) were
   copied in before apply. The spec values (records rec2364055923, rec638772397, rec2366129053, rec638782031,
   rec2375538863, rec638793505; kept lids 1498486363994, 1628604400123, 1781040705497, 1652947963962,
@@ -20,38 +20,38 @@ the 2026-10-04 captures by `make-fixtures.py` beside them (provenance only) — 
   matches 10 lines; pattern `^    "id": "` in `apps/api/fixtures/osio.json` matches exactly 12 lines. (Human-run
   equivalents: `grep -c '<pattern>' <file>` → `5`, `10`, `12`.) The 12-item count is asserted again by the 1.3
   test "Fixture response yields twelve products in response order" once `pnpm test` is green.
-- [ ] 1.2 `apps/api/src/shops/karashynyard.test.ts` — four tests, one per scenario: "Fixture page yields its
+- [x] 1.2 `apps/api/src/shops/karashynyard.test.ts` — four tests, one per scenario: "Fixture page yields its
   products in page order", "Repeated product id keeps the first card", "Page without store records is a
   failure", "Non-2xx status". The adapter gets a stub fetch that resolves with `{ ok, status, text }` from the
   fixture file (`readFileSync`). Verify: the file imports `./karashynyard`, which does not exist yet.
-- [ ] 1.3 `apps/api/src/shops/osio.test.ts` — five tests: "Fixture response yields twelve products in response
+- [x] 1.3 `apps/api/src/shops/osio.test.ts` — five tests: "Fixture response yields twelve products in response
   order", "Coming-soon item is out of stock", "Non-JSON body is a failure", "Empty product list is a failure",
   "Network error" (stub fetch rejects with `new Error("ECONNRESET")`). Verify: imports `./osio`, missing yet.
-- [ ] 1.4 `apps/api/src/lib/snapshot.test.ts` — "Snapshot product normalizes to a Product" against the real
+- [x] 1.4 `apps/api/src/lib/snapshot.test.ts` — "Snapshot product normalizes to a Product" against the real
   `data/shops/karashynyard.json` (directory passed as a value) and `ProductSchema` from `@organic/shared`.
   Verify: imports `./snapshot` and `ProductSchema`, both missing yet.
-- [ ] 1.5 `apps/api/src/config.test.ts` — "Config reads DATA_SOURCE" (three calls of `loadConfig`, the third
+- [x] 1.5 `apps/api/src/config.test.ts` — "Config reads DATA_SOURCE" (three calls of `loadConfig`, the third
   expects the exact throw message). Verify: `pnpm test` reports it failing on `dataSource` being `undefined`.
-- [ ] 1.6 `apps/api/src/lib/catalog.test.ts` — "Selection keeps the first ten of each shop in order" (pure
+- [x] 1.6 `apps/api/src/lib/catalog.test.ts` — "Selection keeps the first ten of each shop in order" (pure
   `selectVisibleProducts`, called with the scenario's literal `ShopProducts[]` input —
   `[{ key: "karashynyard", products: <the 12> }, { key: "osio", products: <the first 3> }]`, type imported
   from `./catalog`), "Second load within five minutes reuses the cache" (both fakes `ok: true` on every call,
   `createTtlCache({ ttlMs: 300000, now })` on the injected clock), "A failed fetch is not cached", "Runtime
   switch to snapshot" (service with fake adapters as `vi.fn()`, injected `now`, snapshot dir `data/shops`).
   Verify: imports `./catalog`, missing yet.
-- [ ] 1.7 `apps/api/src/routes/products.test.ts` — "Snapshot mode serves the committed files", "Both shops
+- [x] 1.7 `apps/api/src/routes/products.test.ts` — "Snapshot mode serves the committed files", "Both shops
   live", "One shop down falls back to its snapshot", "Known id" (a fresh app, the `/:id` request is its first
   request — no prior `GET /api/products`), "Unknown id", all through `createApp({ catalog }).request(...)`
   with fake adapters and snapshot dir `data/shops`. Verify: imports `./products` and the new `createApp`
   signature, both missing yet.
-- [ ] 1.8 `apps/web/src/api/client.test.ts` — "Successful request", "Failed request" with
+- [x] 1.8 `apps/web/src/api/client.test.ts` — "Successful request", "Failed request" with
   `vi.stubGlobal("fetch", vi.fn(...))`. Verify: imports `./client`, missing yet.
-- [ ] 1.9 `apps/web/src/pages/CatalogPage.test.tsx` — five tests: "Two shops with products", "Loading state",
+- [x] 1.9 `apps/web/src/pages/CatalogPage.test.tsx` — five tests: "Two shops with products", "Loading state",
   "Error state", "Snapshot fallback note per shop", "Chosen snapshot mode shows no note";
   `vi.mock("../api/client")`, render `createMemoryRouter(routes, { initialEntries: ["/"] })` in
   `<RouterProvider>`, query with Testing Library roles (`heading`, `link`, `list`, `listitem`, `img`,
   `status`). Verify: imports `../router`, missing yet.
-- [ ] 1.10 Run `pnpm test` and quote the failing lines (one per new test file: "Failed to resolve import" or a
+- [x] 1.10 Run `pnpm test` and quote the failing lines (one per new test file: "Failed to resolve import" or a
   red assertion; `app.test.ts` and `App.test.tsx` stay green). Verify: the quoted red output is in the
   transcript before any task in group 2 starts.
 
